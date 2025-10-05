@@ -6,9 +6,9 @@
   <title>線上作業系統</title>
 
   <!-- 版本號（給 cache-bust & 顯示用） -->
-  <script>window.BUILD_VERSION = 'b1.0';</script>
+  <script>window.BUILD_VERSION = 'b1.1';</script>
 
-  <!-- 只留一份 CSS（加版本參數） -->
+  <!-- 主要 CSS（加版本參數） -->
   <link rel="stylesheet" href="style.css?v=b1.0">
 
   <!-- KaTeX -->
@@ -22,11 +22,12 @@
           src="https://cdn.jsdelivr.net/npm/katex@0.16.10/dist/contrib/auto-render.min.js"
           crossorigin="anonymous"></script>
 
-  <!-- 你的主程式：只留一份，放在 KaTeX 後面（也加版本參數） -->
+  <!-- 主程式（加版本參數） -->
   <script defer src="script.js?v=b1.0"></script>
 </head>
 <body>
   <div class="container">
+    <!-- 登入 -->
     <div id="login-container">
       <h1>作業系統登入</h1>
       <input type="text" id="username" placeholder="帳號" />
@@ -35,37 +36,60 @@
       <p id="login-error" class="error-message"></p>
     </div>
 
-    <!-- 題庫選擇區 -->
+    <!-- 題庫選擇 -->
     <div id="picker-container" class="hidden">
-        <h1>選擇題庫</h1>
-
-        <label for="quiz-select">題庫：</label>
-        <select id="quiz-select"></select>
-
-        <div style="margin-top:12px; display:flex; gap:8px; flex-wrap:wrap;">
-            <button id="start-quiz-btn">開始測驗</button>
-            <button id="logout-btn" type="button">登出</button>
-        </div>
-
-        <p id="picker-error" class="error-message"></p>
+      <h1>選擇題庫</h1>
+      <label for="quiz-select">題庫：</label>
+      <select id="quiz-select"></select>
+      <div class="row gap8">
+        <button id="start-quiz-btn">開始測驗</button>
+        <button id="logout-btn" type="button" class="secondary">登出</button>
+      </div>
+      <p id="picker-error" class="error-message"></p>
     </div>
 
+    <!-- 測驗 -->
     <div id="quiz-container" class="hidden">
-      <div id="question-content"></div>
-      <div id="options-container"></div>
-      <button id="next-btn">下一題</button>
+      <div id="quiz-layout">
+        <!-- 主面板 -->
+        <main id="question-panel">
+          <div id="question-content"></div>
+          <div id="options-container"></div>
+
+          <div class="nav-row">
+            <button id="prev-btn" class="secondary" type="button">上一題</button>
+            <div class="spacer"></div>
+            <button id="submit-btn-mobile" class="danger" type="button">繳交</button>
+            <button id="next-btn" type="button">下一題</button>
+          </div>
+        </main>
+
+        <!-- 側邊欄 -->
+        <aside id="sidebar">
+          <div class="side-head">
+            <h3>題目清單</h3>
+            <button id="submit-btn" class="danger" type="button">繳交</button>
+          </div>
+          <ul id="question-list"></ul>
+        </aside>
+      </div>
     </div>
 
+    <!-- 結果 -->
     <div id="results-container" class="hidden">
       <h1>測驗結果</h1>
       <p id="score"></p>
       <p id="submit-status" style="color:#666;"></p>
       <h3>錯題分析：</h3>
       <ul id="wrong-answers-list"></ul>
-      <button id="restart-btn">重新測驗</button>
-      <button id="back-to-picker-btn" type="button">回到題庫選擇</button>
+      <div class="row gap8">
+        <button id="restart-btn">重新測驗</button>
+        <button id="back-to-picker-btn" type="button" class="secondary">回到題庫選擇</button>
+      </div>
     </div>
   </div>
+
+  <!-- 左上角版本號 -->
   <div id="build-version" aria-label="版本號"></div>
 </body>
 </html>

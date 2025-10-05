@@ -1,143 +1,154 @@
 /* 基本樣式 */
 body {
-    font-family: 'Microsoft JhengHei', '微軟正黑體', sans-serif;
-    background-color: #f0f2f5;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    height: 100vh;
-    margin: 0;
+  font-family: 'Microsoft JhengHei','微軟正黑體',sans-serif;
+  background-color: #f0f2f5;
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  min-height: 100vh;
+  margin: 0;
+  padding: 24px 12px;
 }
 
 .container {
-    background-color: #ffffff;
-    padding: 30px;
-    border-radius: 10px;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-    width: 90%;
-    max-width: 600px;
+  background-color: #fff;
+  padding: 24px;
+  border-radius: 10px;
+  box-shadow: 0 4px 12px rgba(0,0,0,.08);
+  width: 100%;
+  max-width: 980px; /* 放寬以容納側欄 */
 }
 
-h1, h2 {
-    text-align: center;
-    color: #333;
+h1, h2 { text-align: center; color: #333; }
+.row { display: flex; align-items: center; }
+.gap8 { gap: 8px; }
+.spacer { flex: 1; }
+
+/* 登入 */
+#login-container { display: flex; flex-direction: column; gap: 12px; }
+input[type="text"], input[type="password"]{
+  padding: 12px; border:1px solid #ccc; border-radius:6px; font-size:16px;
+}
+button{
+  padding: 10px 14px; border: none; border-radius: 6px;
+  background:#007bff; color:#fff; font-size:16px; cursor: pointer;
+  transition: background-color .2s ease;
+}
+button:hover{ background:#0367d0; }
+button.secondary{ background:#6c757d; }
+button.secondary:hover{ background:#5b636a; }
+button.danger{ background:#dc3545; }
+button.danger:hover{ background:#c12b3a; }
+button:disabled{ opacity:.6; cursor:not-allowed; }
+.error-message{ color:#d33; text-align:center; min-height:20px; }
+
+/* 測驗主版面：主面板 + 側欄 */
+#quiz-layout{
+  display: flex; gap: 18px;
+}
+#question-panel{ flex: 1 1 auto; min-width: 0; }
+#sidebar{
+  width: 240px; flex: 0 0 240px;
+  border-left: 1px solid #eee; padding-left: 14px;
+}
+.side-head{
+  display:flex; align-items:center; gap:8px; margin-bottom:8px;
+}
+.side-head h3{
+  margin: 0; flex: 1; font-size: 16px; color:#333;
 }
 
-/* 登入區塊 */
-#login-container {
-    display: flex;
-    flex-direction: column;
-    gap: 15px;
+/* 題目清單（顏色加重版） */
+#question-list{
+  list-style:none; padding:0; margin:0;
+  display:flex; flex-direction:column; gap:8px;
 }
 
-input[type="text"], input[type="password"] {
-    padding: 12px;
-    border: 1px solid #ccc;
-    border-radius: 5px;
-    font-size: 16px;
+.q-item{
+  display:flex; align-items:center; gap:8px;
+  padding: 10px 12px;
+  border:1px solid #b9c7ff;           /* 藍色邊框更明顯 */
+  border-radius:10px;
+  background:#eef2ff;                  /* 淡藍底（未作答） */
+  color:#1f3b7a;
+  cursor:pointer; font-size:15px; font-weight:500;
+  transition: background-color .15s, border-color .15s, box-shadow .15s;
 }
 
-button {
-    padding: 12px;
-    border: none;
-    border-radius: 5px;
-    background-color: #007bff;
-    color: white;
-    font-size: 16px;
-    cursor: pointer;
-    transition: background-color 0.3s;
+.q-item:hover{
+  background:#e1e8ff;
+  border-color:#8aa3ff;
+  box-shadow:0 1px 0 rgba(0,0,0,.03);
 }
 
-button:hover {
-    background-color: #0056b3;
+/* 目前題目 */
+.q-item.current{
+  background:#cfe1ff;                  /* 更亮的藍色 */
+  border-color:#2b6fff;
+  color:#0f2c6a;
+  box-shadow:0 0 0 2px rgba(43,111,255,.18) inset;
 }
 
-.error-message {
-    color: red;
-    text-align: center;
-    min-height: 20px;
+/* 已作答（非目前題） */
+.q-item.answered:not(.current){
+  background:#e8f7ee;                  /* 淡綠底 */
+  border-color:#93d3a7;
+  color:#135a36;
 }
 
-/* 測驗區塊 */
-#options-container {
-    display: flex;
-    flex-direction: column;
-    gap: 10px;
-    margin: 20px 0;
+/* 打勾符號保持醒目 */
+.q-item.answered::after{
+  content:"✓";
+  margin-left:auto;
+  color:#1aa34a;                       /* 更深綠 */
+  font-weight:800;
 }
 
-.option {
-    padding: 12px;
-    border: 1px solid #ddd;
-    border-radius: 5px;
-    cursor: pointer;
-    transition: background-color 0.3s, border-color 0.3s;
+/* 選項 */
+#options-container { display:flex; flex-direction:column; gap:10px; margin: 20px 0; }
+.option{
+  padding: 12px; border:1px solid #ddd; border-radius:6px; cursor:pointer;
+  transition: background-color .2s, border-color .2s;
+}
+.option:hover{ background:#f0f8ff; }
+.option.selected{ background:#cfe2ff; border-color:#007bff; }
+
+/* 導航列 */
+.nav-row{ display:flex; align-items:center; gap:8px; margin-top: 10px; }
+
+/* 答案清單 */
+#score{ text-align:center; font-size:24px; font-weight:700; color:#28a745; }
+#wrong-answers-list{ list-style:none; padding:0; }
+#wrong-answers-list li{
+  background:#fff3f3; border-left:5px solid #dc3545; padding:10px; margin-bottom:10px;
 }
 
-.option:hover {
-    background-color: #f0f8ff;
+/* 文字 70% | 圖片 30% 試題排版 */
+.q-row{ display:flex; align-items:flex-start; gap:16px; }
+.q-text{ flex: 7 1 0; min-width: 0; }
+.q-media{ flex: 3 1 0; max-width: 30%; }
+.q-media img{ width:100%; height:auto; display:block; border-radius:4px; }
+
+/* 小螢幕：側欄下移並隱藏側欄的繳交，改用下方那顆 */
+@media (max-width: 820px){
+  #quiz-layout{ flex-direction: column; }
+  #sidebar{ width:auto; flex:auto; border-left:none; padding-left:0; }
+  #submit-btn{ display:none; } /* 側欄那顆繳交隱藏 */
+  #submit-btn-mobile{ display:inline-flex; } /* 導航列那顆顯示 */
 }
 
-.option.selected {
-    background-color: #cce5ff;
-    border-color: #007bff;
-}
+/* 預設手機版先隱藏 mobile submit（給桌機） */
+#submit-btn-mobile{ display:none; }
 
-/* 結果區塊 */
-#score {
-    text-align: center;
-    font-size: 24px;
-    font-weight: bold;
-    color: #28a745;
-}
+/* 共用 */
+.hidden{ display:none !important; }
 
-#wrong-answers-list {
-    list-style-type: none;
-    padding: 0;
-}
+/* 登入忙碌視覺 */
+#login-btn.is-busy{ pointer-events:none; }
 
-#wrong-answers-list li {
-    background-color: #fff3f3;
-    border-left: 5px solid #dc3545;
-    padding: 10px;
-    margin-bottom: 10px;
-}
-
-/* 通用工具 */
-.hidden {
-    display: none !important;
-}
-
-/* 文字 70%｜圖片 30% 的題目排版 */
-.q-row { display: flex; align-items: flex-start; gap: 16px; }
-.q-text { flex: 7 1 0; min-width: 0; }
-.q-media { flex: 3 1 0; max-width: 30%; }
-.q-media img { width: 100%; height: auto; display: block; border-radius: 4px; }
-
-/* 小螢幕自動直排 */
-@media (max-width: 768px) {
-  .q-row { flex-direction: column; }
-  .q-media { max-width: 100%; }
-}
-
-#login-btn:disabled {
-  opacity: 0.6;
-  cursor: not-allowed;
-}
-
-#login-btn.is-busy {
-  pointer-events: none; /* 雙保險 */
-}
-
-#build-version {
-  position: fixed;
-  top: 8px;
-  left: 10px;
-  font-size: 10pt;
-  color: #888;
-  font-family: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, "Noto Sans", "Apple Color Emoji", "Segoe UI Emoji";
-  z-index: 9999;
-  user-select: none;
-  pointer-events: none; /* 不擋滑鼠 */
-  opacity: 0.95;
+/* 左上角版本號 */
+#build-version{
+  position: fixed; top: 8px; left: 10px;
+  font-size: 10pt; color:#888; z-index: 9999;
+  user-select:none; pointer-events:none; opacity:.95;
 }
