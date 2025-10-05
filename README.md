@@ -16,5 +16,7 @@ The very first version of the system!
 - Added problem list.
 ### b1.2.0
 - Added timer.
-#### b1.2.1
+### b1.3.0
 - modularized .js files.
+- the site is now in multi-pages.
+- stored questions.json files in a folder.

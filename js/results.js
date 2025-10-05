@@ -1,4 +1,5 @@
-import { state } from './state.js';
+// js/results.js
+import { state, getSession } from './state.js';
 import { renderAllMath } from './katex.js';
 import { submitAttempt } from './api.js';
 import { clearTimer } from './timer.js';
@@ -49,16 +50,24 @@ export async function showResults() {
   const pct = (score / state.quizData.length) * 100;
   scoreEl.textContent = `你的分數：${pct.toFixed(1)} 分 (答對 ${score} / ${state.quizData.length} 題)`;
 
-  // 上傳
+  // ---- 上傳（關鍵：從 session 取 account；版本轉數字）----
+  const sess = getSession();
   const payload = {
-    account: state.user?.account || 'unknown',
+    account: (sess && sess.account) || (state.user && state.user.account) || 'unknown',
     quiz_id: state.currentQuizId || state.selectedQuizId || 'unknown',
-    quiz_version: state.currentQuizVersion,
+    quiz_version: Number(state.currentQuizVersion || 1),
     answers: buildServerAnswers(),
     client_started_at: state.quizStartedAtISO || new Date().toISOString(),
     client_submitted_at: new Date().toISOString(),
     user_agent: navigator.userAgent
   };
+
+  // 除錯列印（可對照 assignments 三欄）
+  console.table({
+    account: payload.account,
+    quiz_id: payload.quiz_id,
+    quiz_version: payload.quiz_version
+  });
 
   const statusEl = document.getElementById('submit-status');
   if (statusEl) statusEl.textContent = '正在上傳成績到老師的試算表...';

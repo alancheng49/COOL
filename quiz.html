@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>作答</title>
+  <script>window.BUILD_VERSION='b1.2.2';</script>
+  <link rel="stylesheet" href="style.css?v=b1.2.2">
+
+  <!-- KaTeX（只在 quiz 頁才載） -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.10/dist/katex.min.css" crossorigin="anonymous" />
+  <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.10/dist/katex.min.js" crossorigin="anonymous"></script>
+  <script defer id="katex-auto-render" src="https://cdn.jsdelivr.net/npm/katex@0.16.10/dist/contrib/auto-render.min.js" crossorigin="anonymous"></script>
+
+  <!-- 頁面入口 -->
+  <script type="module" src="js/quiz.page.js?v=b1.2.2"></script>
+</head>
+<body>
+  <div class="container">
+    <div id="quiz-container">
+      <div id="quiz-layout">
+        <main id="question-panel">
+          <div id="question-content"></div>
+          <div id="options-container"></div>
+          <div class="nav-row">
+            <button id="prev-btn" class="secondary" type="button">上一題</button>
+            <div class="spacer"></div>
+            <button id="submit-btn-mobile" class="danger" type="button">繳交</button>
+            <button id="next-btn" type="button">下一題</button>
+          </div>
+        </main>
+        <aside id="sidebar">
+          <div class="side-head">
+            <h3>題目清單</h3>
+            <div id="quiz-timer" class="timer" aria-live="polite" title="剩餘時間"></div>
+            <button id="submit-btn" class="danger" type="button">繳交</button>
+          </div>
+          <ul id="question-list"></ul>
+        </aside>
+      </div>
+    </div>
+
+    <div id="results-container" class="hidden">
+      <h1>測驗結果</h1>
+      <p id="score"></p>
+      <p id="submit-status" style="color:#666;"></p>
+      <h3>錯題分析：</h3>
+      <ul id="wrong-answers-list"></ul>
+      <div class="row gap8">
+        <button id="restart-btn">重新測驗</button>
+        <button id="back-to-picker-btn" class="secondary" type="button">回到題庫選擇</button>
+      </div>
+    </div>
+  </div>
+</body>
+</html>

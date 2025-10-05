@@ -42,6 +42,10 @@ button.danger:hover{ background:#c12b3a; }
 button:disabled{ opacity:.6; cursor:not-allowed; }
 .error-message{ color:#d33; text-align:center; min-height:20px; }
 
+#picker-container .row.gap8 {
+  margin-top: 12px;          /* 直接對那一排加上邊距 */
+}
+
 /* 測驗主版面：主面板 + 側欄 */
 #quiz-layout{ display: flex; gap: 18px; }
 #question-panel{ flex: 1 1 auto; min-width: 0; }
@@ -160,4 +164,12 @@ button:disabled{ opacity:.6; cursor:not-allowed; }
   position: fixed; top: 8px; left: 10px;
   font-size: 10pt; color:#888; z-index: 9999;
   user-select:none; pointer-events:none; opacity:.95;
+}
+
+/* 讓登入輸入框一致且滿寬 */
+#login-container input[type="text"],
+#login-container input[type="password"] {
+  width: 100%;
+  box-sizing: border-box;
+  font-size: 16px; /* 避免 iOS 自動放大 */
 }
