@@ -43,64 +43,73 @@ button:disabled{ opacity:.6; cursor:not-allowed; }
 .error-message{ color:#d33; text-align:center; min-height:20px; }
 
 /* 測驗主版面：主面板 + 側欄 */
-#quiz-layout{
-  display: flex; gap: 18px;
-}
+#quiz-layout{ display: flex; gap: 18px; }
 #question-panel{ flex: 1 1 auto; min-width: 0; }
 #sidebar{
-  width: 240px; flex: 0 0 240px;
+  width: 260px; flex: 0 0 260px;
   border-left: 1px solid #eee; padding-left: 14px;
 }
 .side-head{
-  display:flex; align-items:center; gap:8px; margin-bottom:8px;
+  display:flex; align-items:center; gap:10px; margin-bottom:10px;
 }
 .side-head h3{
-  margin: 0; flex: 1; font-size: 16px; color:#333;
+  margin: 0; flex: 0 0 auto; font-size: 16px; color:#333;
 }
 
-/* 題目清單（顏色加重版） */
+/* 計時器樣式（在側欄標題列） */
+.timer{
+  display:none; /* 無限時就隱藏，JS 啟用時會改成 inline-flex */
+  align-items:center;
+  font-variant-numeric: tabular-nums;
+  font-size: 12px;
+  color:#334155;
+  background:#eef2ff;
+  border:1px solid #b9c7ff;
+  padding: 4px 10px;
+  border-radius: 9999px;
+  box-shadow: 0 1px 0 rgba(0,0,0,.03);
+}
+.timer.danger{
+  color:#b4232a;
+  background:#ffe8ea;
+  border-color:#f1a7ad;
+}
+
+/* 題目清單（加重版） */
 #question-list{
   list-style:none; padding:0; margin:0;
   display:flex; flex-direction:column; gap:8px;
 }
-
 .q-item{
   display:flex; align-items:center; gap:8px;
   padding: 10px 12px;
-  border:1px solid #b9c7ff;           /* 藍色邊框更明顯 */
+  border:1px solid #b9c7ff;
   border-radius:10px;
-  background:#eef2ff;                  /* 淡藍底（未作答） */
+  background:#eef2ff;                  /* 未作答 */
   color:#1f3b7a;
   cursor:pointer; font-size:15px; font-weight:500;
   transition: background-color .15s, border-color .15s, box-shadow .15s;
 }
-
 .q-item:hover{
   background:#e1e8ff;
   border-color:#8aa3ff;
   box-shadow:0 1px 0 rgba(0,0,0,.03);
 }
-
-/* 目前題目 */
 .q-item.current{
-  background:#cfe1ff;                  /* 更亮的藍色 */
+  background:#cfe1ff;
   border-color:#2b6fff;
   color:#0f2c6a;
   box-shadow:0 0 0 2px rgba(43,111,255,.18) inset;
 }
-
-/* 已作答（非目前題） */
 .q-item.answered:not(.current){
-  background:#e8f7ee;                  /* 淡綠底 */
+  background:#e8f7ee;                  /* 已作答 */
   border-color:#93d3a7;
   color:#135a36;
 }
-
-/* 打勾符號保持醒目 */
 .q-item.answered::after{
   content:"✓";
   margin-left:auto;
-  color:#1aa34a;                       /* 更深綠 */
+  color:#1aa34a;
   font-weight:800;
 }
 
@@ -129,15 +138,15 @@ button:disabled{ opacity:.6; cursor:not-allowed; }
 .q-media{ flex: 3 1 0; max-width: 30%; }
 .q-media img{ width:100%; height:auto; display:block; border-radius:4px; }
 
-/* 小螢幕：側欄下移並隱藏側欄的繳交，改用下方那顆 */
+/* 小螢幕：側欄下移並隱藏側欄繳交，改用下方那顆 */
 @media (max-width: 820px){
   #quiz-layout{ flex-direction: column; }
   #sidebar{ width:auto; flex:auto; border-left:none; padding-left:0; }
-  #submit-btn{ display:none; } /* 側欄那顆繳交隱藏 */
+  #submit-btn{ display:none; }         /* 側欄那顆繳交隱藏 */
   #submit-btn-mobile{ display:inline-flex; } /* 導航列那顆顯示 */
 }
 
-/* 預設手機版先隱藏 mobile submit（給桌機） */
+/* 預設桌機版：隱藏 mobile submit */
 #submit-btn-mobile{ display:none; }
 
 /* 共用 */

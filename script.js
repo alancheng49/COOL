@@ -61,6 +61,7 @@ const restartBtn        = document.getElementById('restart-btn');
 const backToPickerBtn   = document.getElementById('back-to-picker-btn');
 
 const questionListEl    = document.getElementById('question-list');
+const quizTimerEl       = document.getElementById('quiz-timer'); // ← 計時器顯示節點
 
 // ==========================
 // 狀態
@@ -74,6 +75,12 @@ let selectedQuizId = null;
 let selectedQuizFile = null;
 let currentQuizId = null;
 let currentQuizVersion = 1;
+
+// 計時器狀態
+let timeLimitSec = null;   // null/0 = 不限時
+let deadlineAtMs = null;
+let timerId = null;
+let autoSubmitted = false;
 
 // 登入忙碌
 let loginAbortController = null;
@@ -92,6 +99,59 @@ function setLoginBusy(busy) {
   usernameInput.disabled = busy;
   passwordInput.disabled = busy;
   loginBtn.classList.toggle('is-busy', busy);
+}
+
+// ==========================
+// 計時器：控制
+// ==========================
+function clearTimer() {
+  if (timerId) clearInterval(timerId);
+  timerId = null;
+  deadlineAtMs = null;
+  autoSubmitted = false;
+  if (quizTimerEl) {
+    quizTimerEl.textContent = '';
+    quizTimerEl.classList.remove('danger');
+    quizTimerEl.style.display = 'none';
+  }
+}
+
+function startTimer(seconds) {
+  if (!quizTimerEl) return;
+  if (!seconds || seconds <= 0) { // 不限時
+    clearTimer();
+    return;
+  }
+  timeLimitSec = seconds;
+  deadlineAtMs = new Date(quizStartedAtISO).getTime() + seconds * 1000;
+  autoSubmitted = false;
+
+  quizTimerEl.style.display = 'inline-flex';
+
+  const fmt = (s) => {
+    const m = Math.floor(s / 60), ss = s % 60;
+    return `${String(m).padStart(2,'0')}:${String(ss).padStart(2,'0')}`;
+  };
+
+  const tick = () => {
+    const remain = Math.max(0, Math.ceil((deadlineAtMs - Date.now()) / 1000));
+    quizTimerEl.textContent = fmt(remain);
+    if (remain <= 30) quizTimerEl.classList.add('danger');
+    if (remain <= 0 && !autoSubmitted) {
+      autoSubmitted = true;
+      disableInteractions();
+      showResults();        // 強制繳交
+    }
+  };
+
+  tick();
+  timerId = setInterval(tick, 250);
+}
+
+function disableInteractions() {
+  // 避免到時重複點擊
+  [nextBtn, prevBtn, submitBtn, submitBtnMobile].forEach(btn => { if (btn) btn.disabled = true; });
+  document.querySelectorAll('.option').forEach(el => el.style.pointerEvents = 'none');
 }
 
 // ==========================
@@ -211,6 +271,10 @@ startQuizBtn.addEventListener('click', () => {
   const picked = currentUser?.quizzes?.find(q => q.id === selectedQuizId);
   if (picked?.version) currentQuizVersion = picked.version;
 
+  // 讀取 time_limit_minutes → 秒數
+  const tlm = (picked && typeof picked.time_limit_minutes === 'number') ? picked.time_limit_minutes : null;
+  timeLimitSec = tlm && tlm > 0 ? tlm * 60 : null;
+
   pickerContainer.classList.add('hidden');
   startQuiz(selectedQuizFile);
 });
@@ -222,6 +286,8 @@ logoutBtn.addEventListener('click', () => {
   if (loginSlowHintTimer) { clearTimeout(loginSlowHintTimer); loginSlowHintTimer = null; }
   setLoginBusy(false);
   loginError.textContent = '';
+
+  clearTimer();
 
   currentUser = null;
   selectedQuizFile = selectedQuizId = null;
@@ -256,6 +322,11 @@ async function startQuiz(quizFile) {
 
     renderSidebar();
     displayQuestion();
+
+    // 啟用計時器（有設定才顯示）
+    clearTimer();
+    startTimer(timeLimitSec);
+
   } catch (err) {
     alert(err.message);
     quizContainer.classList.add('hidden');
@@ -304,10 +375,8 @@ function displayQuestion() {
   renderAllMath(questionContent);
   renderAllMath(optionsContainer);
 
-  // 更新側欄當前高亮
   updateSidebarClasses();
 
-  // 調整下一題按鈕文字
   nextBtn.textContent = (currentQuestionIndex === quizData.length - 1) ? '到最後了' : '下一題';
 }
 
@@ -369,8 +438,6 @@ nextBtn.addEventListener('click', () => {
   if (currentQuestionIndex < quizData.length - 1) {
     currentQuestionIndex++;
     displayQuestion();
-  } else {
-    // 已到最後一題，什麼也不做或提示
   }
 });
 
@@ -434,6 +501,9 @@ async function submitAttemptToSheet() {
 // 結果
 // ==========================
 function showResults() {
+  // 停掉計時器，避免在結果畫面還繼續跑
+  clearTimer();
+
   quizContainer.classList.add('hidden');
   resultsContainer.classList.remove('hidden');
 

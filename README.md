@@ -9,8 +9,10 @@ Something built for fun :)
 
 # Release Notes
 ## Build versions
-### b1.0
+### b1.0.0
 The very first version of the system!
-### b1.1
+### b1.1.0
 - Fixed some bugs.
 - Added problem list.
+### b1.2.0
+- Added timer.

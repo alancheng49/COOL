@@ -6,7 +6,7 @@
   <title>線上作業系統</title>
 
   <!-- 版本號（給 cache-bust & 顯示用） -->
-  <script>window.BUILD_VERSION = 'b1.1';</script>
+  <script>window.BUILD_VERSION = 'b1.2.0';</script>
 
   <!-- 主要 CSS（加版本參數） -->
   <link rel="stylesheet" href="style.css?v=b1.0">
@@ -68,6 +68,8 @@
         <aside id="sidebar">
           <div class="side-head">
             <h3>題目清單</h3>
+            <!-- 計時器顯示（由 JS 控制顯示/隱藏） -->
+            <div id="quiz-timer" class="timer" aria-live="polite" title="剩餘時間"></div>
             <button id="submit-btn" class="danger" type="button">繳交</button>
           </div>
           <ul id="question-list"></ul>
