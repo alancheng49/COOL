@@ -107,3 +107,15 @@ button:hover {
 .hidden {
     display: none !important;
 }
+
+/* 文字 70%｜圖片 30% 的題目排版 */
+.q-row { display: flex; align-items: flex-start; gap: 16px; }
+.q-text { flex: 7 1 0; min-width: 0; }
+.q-media { flex: 3 1 0; max-width: 30%; }
+.q-media img { width: 100%; height: auto; display: block; border-radius: 4px; }
+
+/* 小螢幕自動直排 */
+@media (max-width: 768px) {
+  .q-row { flex-direction: column; }
+  .q-media { max-width: 100%; }
+}

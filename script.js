@@ -94,7 +94,11 @@ let quizData = [];
 let currentQuestionIndex = 0;
 let userAnswers = [];
 let currentUser = null;
-let selectedQuizFile = null; // 新增：目前選擇的題庫檔案路徑
+
+let selectedQuizId = null;     // 選單目前選到的 quiz id（如 'problem2'）
+let selectedQuizFile = null;   // 選單目前選到的題庫檔
+let currentQuizId = null;      // 這次「正在作答」的 quiz id
+let currentQuizVersion = 1;    // 版本，先固定 1；之後要升版再調
 
 // ==========================
 //  登入
@@ -129,49 +133,54 @@ loginBtn.addEventListener('click', () => {
 //  顯示題庫選擇
 // ==========================
 function showQuizPicker(forceShow = false) {
-  // 清空選單
   quizSelect.innerHTML = '';
   pickerError.textContent = '';
 
   const quizzes = currentUser?.quizzes ?? [];
-
   if (quizzes.length === 0) {
     pickerError.textContent = '此帳號尚未配置題庫，請聯絡老師或管理員。';
     pickerContainer.classList.remove('hidden');
     return;
   }
 
-  // 產生選項
+  // 產生選項（value = id, data-file = 檔名）
   quizzes.forEach((q, idx) => {
     const opt = document.createElement('option');
-    opt.value = q.file;       // 直接存路徑
+    opt.value = q.id;
+    opt.dataset.file = q.file;
     opt.textContent = `${q.id} ─ ${q.name}`;
     if (idx === 0) opt.selected = true;
     quizSelect.appendChild(opt);
   });
 
-  // 若只有一套題庫，直接進入測驗
   if (quizzes.length === 1 && !forceShow) {
+    // 自動開考：把 id / file 都設好，並鎖定 currentQuizId
+    selectedQuizId   = quizzes[0].id;
     selectedQuizFile = quizzes[0].file;
+    currentQuizId    = selectedQuizId;
     pickerContainer.classList.add('hidden');
     startQuiz(selectedQuizFile);
   } else {
-    selectedQuizFile = quizSelect.value;
+    // 顯示選單：從目前選項讀出 id 與 file
+    selectedQuizId   = quizSelect.value;
+    selectedQuizFile = quizSelect.selectedOptions[0].dataset.file;
     pickerContainer.classList.remove('hidden');
   }
 }
 
 // 監聽選單變更
 quizSelect.addEventListener('change', () => {
-  selectedQuizFile = quizSelect.value;
+  selectedQuizId   = quizSelect.value;
+  selectedQuizFile = quizSelect.selectedOptions[0].dataset.file;
 });
 
 // 點「開始測驗」
 startQuizBtn.addEventListener('click', () => {
-  if (!selectedQuizFile) {
+  if (!selectedQuizFile || !selectedQuizId) {
     pickerError.textContent = '請先選擇題庫！';
     return;
   }
+  currentQuizId = selectedQuizId;   // ← 關鍵：鎖定這次作答要上傳的 quiz_id
   pickerContainer.classList.add('hidden');
   startQuiz(selectedQuizFile);
 });
@@ -180,6 +189,9 @@ startQuizBtn.addEventListener('click', () => {
 logoutBtn.addEventListener('click', () => {
   currentUser = null;
   selectedQuizFile = null;
+  selectedQuizId = null;
+  currentQuizId = null;
+  currentQuizVersion = 1;
   usernameInput.value = '';
   passwordInput.value = '';
 
@@ -231,17 +243,40 @@ function displayQuestion() {
   optionsContainer.innerHTML = '';
 
   const currentQuestion = quizData[currentQuestionIndex];
+  
+if (currentQuestion.question_image && currentQuestion.question_type !== 'image') {
+  // 文字 + 圖片（70/30）
+  const row = document.createElement('div');
+  row.className = 'q-row';
 
-  if (currentQuestion.question_type === 'image') {
-    const img = document.createElement('img');
-    img.src = currentQuestion.question_content;
-    img.alt = `題目圖片 ${currentQuestionIndex + 1}`;
-    questionContent.appendChild(img);
-  } else {
-    const title = document.createElement('h2');
-    title.innerHTML = currentQuestion.question_content;
-    questionContent.appendChild(title);
-  }
+  const text = document.createElement('div');
+  text.className = 'q-text';
+  const h2 = document.createElement('h2');
+  h2.innerHTML = currentQuestion.question_content;
+  text.appendChild(h2);
+
+  const media = document.createElement('div');
+  media.className = 'q-media';
+  const img = document.createElement('img');
+  img.src = currentQuestion.question_image;
+  img.alt = `題目圖片 ${currentQuestionIndex + 1}`;
+  media.appendChild(img);
+
+  row.appendChild(text);
+  row.appendChild(media);
+  questionContent.appendChild(row);
+} else if (currentQuestion.question_type === 'image') {
+  // 純圖片題（維持原本）
+  const img = document.createElement('img');
+  img.src = currentQuestion.question_content;
+  img.alt = `題目圖片 ${currentQuestionIndex + 1}`;
+  questionContent.appendChild(img);
+} else {
+  // 純文字題（維持原本）
+  const title = document.createElement('h2');
+  title.innerHTML = currentQuestion.question_content;
+  questionContent.appendChild(title);
+}
 
   currentQuestion.options.forEach((option, idx) => {
     const optionDiv = document.createElement('div');
@@ -282,13 +317,6 @@ nextBtn.addEventListener('click', () => {
   }
 });
 
-function getSelectedQuizId() {
-  // 你之前在 showQuizPicker 裡用 quizzes 的 {id, name, file}
-  // 這裡從檔名反查 quiz_id（找不到就給個 'unknown'）
-  const match = currentUser?.quizzes?.find(q => q.file === selectedQuizFile);
-  return match ? match.id : 'unknown';
-}
-
 function buildServerAnswers() {
   // 把使用者的作答索引轉成 [{q_index, selected_index}, ...]
   return userAnswers.map((selIdx, qIdx) => ({
@@ -300,7 +328,7 @@ function buildServerAnswers() {
 async function submitAttemptToSheet() {
   const payload = {
     account: currentUser?.account || 'unknown',
-    quiz_id: getSelectedQuizId(),       // 例如 'problem1'
+    quiz_id: currentQuizId || selectedQuizId || 'unknown',
     quiz_version: 1,                    // 與 answer_keys 版本一致
     answers: buildServerAnswers(),      // [{q_index, selected_index}]
     client_started_at: quizStartedAtISO || new Date().toISOString(),
@@ -354,10 +382,23 @@ function showResults() {
     }
 
     // 題目呈現：文字題或圖片題
-    const questionDisplayHTML =
-      question.question_type === 'image'
-        ? `<img src="${question.question_content}" alt="題目圖片 ${index + 1}" style="width:80%;max-width:250px;margin:10px 0;border-radius:4px;">`
-        : `<p><strong>題目：</strong>${question.question_content}</p>`;
+    const hasSideImage = question.question_image && question.question_type !== 'image';
+
+    const questionDisplayHTML = hasSideImage
+        ? `
+    <div class="q-row">
+      <div class="q-text">
+        <p><strong>題目：</strong>${question.question_content}</p>
+      </div>
+      <div class="q-media">
+        <img src="${question.question_image}" alt="題目圖片 ${index + 1}" />
+      </div>
+    </div>
+  `
+  : (question.question_type === 'image'
+      ? `<img src="${question.question_content}" alt="題目圖片 ${index + 1}" style="width:80%;max-width:250px;margin:10px 0;border-radius:4px;">`
+      : `<p><strong>題目：</strong>${question.question_content}</p>`
+    );
 
     // 把索引轉回實際的選項 HTML（含 KaTeX）
     const yourAnswerHTML   = (selectedIdx != null && question.options[selectedIdx] != null)
