@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>線上作業系統</title>
+
+  <link rel="stylesheet" href="style.css" />
+
+  <!-- KaTeX -->
+  <link
+    rel="stylesheet"
+    href="https://cdn.jsdelivr.net/npm/katex@0.16.10/dist/katex.min.css"
+    crossorigin="anonymous"
+  />
+  <script
+    defer
+    src="https://cdn.jsdelivr.net/npm/katex@0.16.10/dist/katex.min.js"
+    crossorigin="anonymous"
+  ></script>
+  <script
+    defer
+    id="katex-auto-render"
+    src="https://cdn.jsdelivr.net/npm/katex@0.16.10/dist/contrib/auto-render.min.js"
+    crossorigin="anonymous"
+  ></script>
+
+  <!-- 你的主程式（一定要放在 KaTeX 後面，且用 defer） -->
+  <script defer src="script.js"></script>
+</head>
+<body>
+  <div class="container">
+    <div id="login-container">
+      <h1>作業系統登入</h1>
+      <input type="text" id="username" placeholder="帳號" />
+      <input type="password" id="password" placeholder="密碼" />
+      <button id="login-btn">登入</button>
+      <p id="login-error" class="error-message"></p>
+    </div>
+
+    <!-- 題庫選擇區 -->
+    <div id="picker-container" class="hidden">
+        <h1>選擇題庫</h1>
+
+        <label for="quiz-select">題庫：</label>
+        <select id="quiz-select"></select>
+
+        <div style="margin-top:12px; display:flex; gap:8px; flex-wrap:wrap;">
+            <button id="start-quiz-btn">開始測驗</button>
+            <button id="logout-btn" type="button">登出</button>
+        </div>
+
+        <p id="picker-error" class="error-message"></p>
+    </div>
+
+    <div id="quiz-container" class="hidden">
+      <div id="question-content"></div>
+      <div id="options-container"></div>
+      <button id="next-btn">下一題</button>
+    </div>
+
+    <div id="results-container" class="hidden">
+      <h1>測驗結果</h1>
+      <p id="score"></p>
+      <p id="submit-status" style="color:#666;"></p>
+      <h3>錯題分析：</h3>
+      <ul id="wrong-answers-list"></ul>
+      <button id="restart-btn">重新測驗</button>
+      <button id="back-to-picker-btn" type="button">回到題庫選擇</button>
+    </div>
+  </div>
+</body>
+</html>

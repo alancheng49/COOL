@@ -1,0 +1,35 @@
+[
+  {
+    "question_type": "text",
+    "question_content": "1. 質能互換公式是什麼？",
+    "options": [
+      "$E = mc$", 
+      "$E = mc^3$", 
+      "$E = mc^2$", 
+      "$E = m^2c$"
+    ],
+    "answer": "$E = mc^2$"
+  },
+  {
+    "question_type": "text",
+    "question_content": "2. 請解出二次方程式 $x^2 - 5x + 6 = 0$ 的根。",
+    "options": [
+      "x=1, x=6", 
+      "x=-2, x=-3", 
+      "x=2, x=3", 
+      "無解"
+    ],
+    "answer": "x=2, x=3"
+  },
+  {
+    "question_type": "text",
+    "question_content": "3. 分數 $\\frac{1}{2}$ 加上 $\\frac{1}{3}$ 等於多少？ (提醒：LaTeX 的 \\frac 需要兩個反斜線)",
+    "options": [
+      "$\\frac{2}{5}$", 
+      "$\\frac{5}{6}$", 
+      "$\\frac{1}{6}$", 
+      "$1$"
+    ],
+    "answer": "$\\frac{5}{6}$"
+  }
+]
