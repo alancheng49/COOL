@@ -16,3 +16,5 @@ The very first version of the system!
 - Added problem list.
 ### b1.2.0
 - Added timer.
+#### b1.2.1
+- modularized .js files.

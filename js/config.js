@@ -1,0 +1,2 @@
+export const WEBAPP_URL = 'https://script.google.com/macros/s/AKfycbyTnaCOBxIdYBvMgQl3lVmJ54iVhlKFY6k0l1LRQxOPRAXE-SSqv4chae2V21s_aiHt/exec';
+export const BUILD_VERSION = window.BUILD_VERSION || 'dev';
