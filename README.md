@@ -1,0 +1,7 @@
+# Introduction
+Something built for fun :)
+## Features to be updated
+[] 介面優化
+[] 文繞圖樣式
+[] 獨立帳密資料庫
+[] 獨立題目分配資料庫
