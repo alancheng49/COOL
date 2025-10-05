@@ -119,3 +119,12 @@ button:hover {
   .q-row { flex-direction: column; }
   .q-media { max-width: 100%; }
 }
+
+#login-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+#login-btn.is-busy {
+  pointer-events: none; /* 雙保險 */
+}

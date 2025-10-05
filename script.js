@@ -59,33 +59,6 @@ const wrongAnswersList  = document.getElementById('wrong-answers-list');
 const restartBtn        = document.getElementById('restart-btn');
 const backToPickerBtn = document.getElementById('back-to-picker-btn'); // 新增
 
-// ==========================
-//  使用者資料庫（改為多題庫）
-// ==========================
-const usersDatabase = [
-  {
-    account: "test",
-    password: "test",
-    quizzes: [
-      { id: "problem1", name: "Problem 1（經典）", file: "questions_a.json" },
-      { id: "problem2", name: "Problem 2（進階）", file: "questions_b.json" }
-    ]
-  },
-  {
-    account: "studentB",
-    password: "pass456",
-    quizzes: [
-      { id: "problem1", name: "Problem 1", file: "questions_b.json" } // 自行調整
-    ]
-  },
-  {
-    account: "test1",
-    password: "test1",
-    quizzes: [
-      { id: "problem1", name: "Problem 1", file: "questions_a.json" }
-    ]
-  }
-];
 
 // ==========================
 //  測驗狀態
@@ -100,33 +73,109 @@ let selectedQuizFile = null;   // 選單目前選到的題庫檔
 let currentQuizId = null;      // 這次「正在作答」的 quiz id
 let currentQuizVersion = 1;    // 版本，先固定 1；之後要升版再調
 
+// 登入忙碌與請求控制
+let loginAbortController = null;
+let loginBusy = false;
+
+function setLoginBusy(busy) {
+  loginBusy = busy;
+
+  // 首次記錄原始文字
+  if (!loginBtn.dataset.idleText) {
+    loginBtn.dataset.idleText = loginBtn.textContent || '登入';
+  }
+
+  // 文字 & ARIA
+  loginBtn.textContent = busy ? '登入中…' : loginBtn.dataset.idleText;
+  loginBtn.setAttribute('aria-busy', busy ? 'true' : 'false');
+
+  // 關鍵：真的不可點
+  loginBtn.disabled = busy;
+
+  // 同步鎖定帳號/密碼輸入框，避免登入中被修改
+  usernameInput.disabled = busy;
+  passwordInput.disabled = busy;
+
+  // 提供一個 class 給樣式用（可選）
+  loginBtn.classList.toggle('is-busy', busy);
+}
+
 // ==========================
 //  登入
 // ==========================
-loginBtn.addEventListener('click', () => {
+loginBtn.addEventListener('click', async () => {
+  if (loginBusy) return;
+  loginError.textContent = '';
+
   const username = usernameInput.value.trim();
   const password = passwordInput.value;
-
-  const foundUser = usersDatabase.find(
-    (u) => u.account === username && u.password === password
-  );
-
-  if (!foundUser) {
-    currentUser = null;
-    loginError.textContent = '帳號或密碼錯誤！';
+  if (!username || !password) {
+    loginError.textContent = '請輸入帳號與密碼';
     return;
   }
 
-  currentUser = foundUser;
-  selectedQuizFile = null; // 重置
-  loginError.textContent = '';
+  setLoginBusy(true);
+  try { loginAbortController?.abort(); } catch (_) {}
+  loginAbortController = new AbortController();
 
-  // 顯示「題庫選擇」
-  loginContainer.classList.add('hidden');
-  resultsContainer.classList.add('hidden');
-  quizContainer.classList.add('hidden');
+  // 慢速提示（存到全域，之後可在登出時清掉）
+  loginSlowHintTimer = setTimeout(() => {
+    if (!loginError.textContent) {
+      loginError.textContent = '正在連線伺服器（第一次可能較慢）…';
+    }
+  }, 500);
 
-  showQuizPicker();
+  try {
+    const res = await fetch(WEBAPP_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'text/plain' },
+      body: JSON.stringify({ action: 'auth', account: username, password }),
+      signal: loginAbortController.signal
+    });
+    const data = await res.json().catch(() => null);
+
+    if (!data || !data.ok) {
+      if (!suppressLoginError) {
+        loginError.textContent = `登入失敗：${data && data.error ? data.error : '未知錯誤'}`;
+      }
+      return;
+    }
+
+    currentUser = {
+      account: data.account,
+      display_name: data.display_name,
+      role: data.role,
+      quizzes: data.quizzes || []
+    };
+    selectedQuizId = null;
+    selectedQuizFile = null;
+    currentQuizId = null;
+    currentQuizVersion = 1;
+
+    loginContainer.classList.add('hidden');
+    resultsContainer.classList.add('hidden');
+    quizContainer.classList.add('hidden');
+    showQuizPicker();
+
+  } catch (err) {
+    if (err && err.name === 'AbortError') {
+      // 登出時主動中止：不要顯示「已取消登入」訊息
+      if (!suppressLoginError) {
+        loginError.textContent = '已取消登入。';
+      }
+    } else {
+      if (!suppressLoginError) {
+        loginError.textContent = '登入服務暫時無法使用，請稍後再試';
+      }
+      console.error(err);
+    }
+  } finally {
+    clearTimeout(loginSlowHintTimer);
+    loginSlowHintTimer = null;
+    setLoginBusy(false);
+    loginAbortController = null;
+    suppressLoginError = false; // 重置抑制旗標
+  }
 });
 
 // ==========================
@@ -158,6 +207,7 @@ function showQuizPicker(forceShow = false) {
     selectedQuizId   = quizzes[0].id;
     selectedQuizFile = quizzes[0].file;
     currentQuizId    = selectedQuizId;
+    currentQuizVersion = quizzes[0].version || 1;
     pickerContainer.classList.add('hidden');
     startQuiz(selectedQuizFile);
   } else {
@@ -181,12 +231,29 @@ startQuizBtn.addEventListener('click', () => {
     return;
   }
   currentQuizId = selectedQuizId;   // ← 關鍵：鎖定這次作答要上傳的 quiz_id
+
+  const picked = currentUser?.quizzes?.find(q => q.id === selectedQuizId);
+  if (picked && picked.version) currentQuizVersion = picked.version;
+
   pickerContainer.classList.add('hidden');
   startQuiz(selectedQuizFile);
 });
 
 // 登出：回到登入畫面
 logoutBtn.addEventListener('click', () => {
+  try { loginAbortController?.abort(); } catch (_) {}
+  setLoginBusy(false);
+
+  // 清掉「正在連線伺服器…」的計時器
+  if (loginSlowHintTimer) {
+    clearTimeout(loginSlowHintTimer);
+    loginSlowHintTimer = null;
+  }
+
+  // 復原按鈕 & 清除紅字
+  setLoginBusy(false);
+  loginError.textContent = '';
+
   currentUser = null;
   selectedQuizFile = null;
   selectedQuizId = null;
@@ -329,7 +396,7 @@ async function submitAttemptToSheet() {
   const payload = {
     account: currentUser?.account || 'unknown',
     quiz_id: currentQuizId || selectedQuizId || 'unknown',
-    quiz_version: 1,                    // 與 answer_keys 版本一致
+    quiz_version: currentQuizVersion,
     answers: buildServerAnswers(),      // [{q_index, selected_index}]
     client_started_at: quizStartedAtISO || new Date().toISOString(),
     client_submitted_at: new Date().toISOString(),
@@ -339,6 +406,10 @@ async function submitAttemptToSheet() {
   // 顯示上傳中
   const statusEl = document.getElementById('submit-status');
   if (statusEl) statusEl.textContent = '正在上傳成績到老師的試算表...';
+
+  console.log('Submitting payload:', {
+  quiz_id: currentQuizId, version: currentQuizVersion, file: selectedQuizFile, answers: buildServerAnswers()
+  });
 
   // 送到 Apps Script（瀏覽器會自動處理 302 轉址，無需特別處理）
   const res = await fetch(WEBAPP_URL, {
@@ -457,4 +528,9 @@ backToPickerBtn.addEventListener('click', () => {
 // 首頁載入時渲染（若登入頁有公式）
 window.addEventListener('DOMContentLoaded', () => {
   renderAllMath(document.body);
+});
+
+// 放在你的 script.js 最後（DOMContentLoaded 附近也可）
+window.addEventListener('load', () => {
+  fetch(WEBAPP_URL, { method: 'GET', cache: 'no-store' }).catch(() => {});
 });
