@@ -56,7 +56,7 @@ export function requireLogin(redirect = true) {
   if (!s?.account) {
     if (redirect) {
       // 避免回上一頁再前進造成多條歷史紀錄
-      location.replace(`login.html?v=b1.2.2 || Date.now()}`);
+      location.replace(`login.html?v=b1.3.0 || Date.now()}`);
     }
     // 阻止後續程式繼續執行
     throw new Error('UNAUTHENTICATED');
@@ -116,5 +116,5 @@ export function logoutAndRedirect() {
   try { if (state.loginAbortController) state.loginAbortController.abort(); } catch {}
   clearSession();
   resetState();
-  location.replace(`login.html?v=b1.2.2 || Date.now()}`);
+  location.replace(`login.html?v=b1.3.0 || Date.now()}`);
 }
