@@ -5,28 +5,25 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>線上作業系統</title>
 
-  <link rel="stylesheet" href="style.css" />
+  <!-- 版本號（給 cache-bust & 顯示用） -->
+  <script>window.BUILD_VERSION = 'b1.0';</script>
+
+  <!-- 只留一份 CSS（加版本參數） -->
+  <link rel="stylesheet" href="style.css?v=b1.0">
 
   <!-- KaTeX -->
-  <link
-    rel="stylesheet"
-    href="https://cdn.jsdelivr.net/npm/katex@0.16.10/dist/katex.min.css"
-    crossorigin="anonymous"
-  />
-  <script
-    defer
-    src="https://cdn.jsdelivr.net/npm/katex@0.16.10/dist/katex.min.js"
-    crossorigin="anonymous"
-  ></script>
-  <script
-    defer
-    id="katex-auto-render"
-    src="https://cdn.jsdelivr.net/npm/katex@0.16.10/dist/contrib/auto-render.min.js"
-    crossorigin="anonymous"
-  ></script>
+  <link rel="stylesheet"
+        href="https://cdn.jsdelivr.net/npm/katex@0.16.10/dist/katex.min.css"
+        crossorigin="anonymous" />
+  <script defer
+          src="https://cdn.jsdelivr.net/npm/katex@0.16.10/dist/katex.min.js"
+          crossorigin="anonymous"></script>
+  <script defer id="katex-auto-render"
+          src="https://cdn.jsdelivr.net/npm/katex@0.16.10/dist/contrib/auto-render.min.js"
+          crossorigin="anonymous"></script>
 
-  <!-- 你的主程式（一定要放在 KaTeX 後面，且用 defer） -->
-  <script defer src="script.js"></script>
+  <!-- 你的主程式：只留一份，放在 KaTeX 後面（也加版本參數） -->
+  <script defer src="script.js?v=b1.0"></script>
 </head>
 <body>
   <div class="container">
@@ -69,5 +66,6 @@
       <button id="back-to-picker-btn" type="button">回到題庫選擇</button>
     </div>
   </div>
+  <div id="build-version" aria-label="版本號"></div>
 </body>
 </html>

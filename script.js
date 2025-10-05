@@ -282,7 +282,8 @@ async function startQuiz(quizFile) {
   }
 
   try {
-    const response = await fetch(quizFile);
+    const url = `${quizFile}?v=${window.BUILD_VERSION || Date.now()}`;
+    const response = await fetch(url, { cache: 'no-store' });
     if (!response.ok) throw new Error(`無法讀取題庫檔案：${quizFile}`);
 
     quizData = await response.json();
@@ -533,4 +534,9 @@ window.addEventListener('DOMContentLoaded', () => {
 // 放在你的 script.js 最後（DOMContentLoaded 附近也可）
 window.addEventListener('load', () => {
   fetch(WEBAPP_URL, { method: 'GET', cache: 'no-store' }).catch(() => {});
+});
+
+window.addEventListener('DOMContentLoaded', () => {
+  const el = document.getElementById('build-version');
+  if (el) el.textContent = `${window.BUILD_VERSION || 'dev'}`;
 });

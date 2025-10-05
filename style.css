@@ -128,3 +128,16 @@ button:hover {
 #login-btn.is-busy {
   pointer-events: none; /* 雙保險 */
 }
+
+#build-version {
+  position: fixed;
+  top: 8px;
+  left: 10px;
+  font-size: 10pt;
+  color: #888;
+  font-family: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, "Noto Sans", "Apple Color Emoji", "Segoe UI Emoji";
+  z-index: 9999;
+  user-select: none;
+  pointer-events: none; /* 不擋滑鼠 */
+  opacity: 0.95;
+}
