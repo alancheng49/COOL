@@ -76,6 +76,8 @@ let currentQuizVersion = 1;    // 版本，先固定 1；之後要升版再調
 // 登入忙碌與請求控制
 let loginAbortController = null;
 let loginBusy = false;
+let suppressLoginError = false;
+let loginSlowHintTimer = null;
 
 function setLoginBusy(busy) {
   loginBusy = busy;
@@ -105,6 +107,13 @@ function setLoginBusy(busy) {
 // ==========================
 loginBtn.addEventListener('click', async () => {
   if (loginBusy) return;
+
+  suppressLoginError = false;                 // 取消先前登出時設的抑制
+  if (loginSlowHintTimer) {                   // 清掉上一次殘留的提示計時器
+    clearTimeout(loginSlowHintTimer);
+    loginSlowHintTimer = null;
+  }
+
   loginError.textContent = '';
 
   const username = usernameInput.value.trim();
@@ -118,12 +127,12 @@ loginBtn.addEventListener('click', async () => {
   try { loginAbortController?.abort(); } catch (_) {}
   loginAbortController = new AbortController();
 
-  // 慢速提示（存到全域，之後可在登出時清掉）
+  // 慢速提示（建議 >= 1200ms 比較不突兀）
   loginSlowHintTimer = setTimeout(() => {
     if (!loginError.textContent) {
       loginError.textContent = '正在連線伺服器（第一次可能較慢）…';
     }
-  }, 500);
+  }, 1500);
 
   try {
     const res = await fetch(WEBAPP_URL, {
@@ -135,9 +144,9 @@ loginBtn.addEventListener('click', async () => {
     const data = await res.json().catch(() => null);
 
     if (!data || !data.ok) {
-      if (!suppressLoginError) {
-        loginError.textContent = `登入失敗：${data && data.error ? data.error : '未知錯誤'}`;
-      }
+      // 這次我們已在開頭把 suppressLoginError 重置為 false，
+      // 所以會正常顯示「登入失敗」而不是卡在「正在連線伺服器」
+      loginError.textContent = `登入失敗：${data && data.error ? data.error : '未知錯誤'}`;
       return;
     }
 
@@ -159,14 +168,9 @@ loginBtn.addEventListener('click', async () => {
 
   } catch (err) {
     if (err && err.name === 'AbortError') {
-      // 登出時主動中止：不要顯示「已取消登入」訊息
-      if (!suppressLoginError) {
-        loginError.textContent = '已取消登入。';
-      }
+      // 登出中止，不顯示多餘訊息
     } else {
-      if (!suppressLoginError) {
-        loginError.textContent = '登入服務暫時無法使用，請稍後再試';
-      }
+      loginError.textContent = '登入服務暫時無法使用，請稍後再試';
       console.error(err);
     }
   } finally {
@@ -174,7 +178,7 @@ loginBtn.addEventListener('click', async () => {
     loginSlowHintTimer = null;
     setLoginBusy(false);
     loginAbortController = null;
-    suppressLoginError = false; // 重置抑制旗標
+    // 不必在這裡再改 suppressLoginError，交給下次點登入時重置即可
   }
 });
 
@@ -241,8 +245,8 @@ startQuizBtn.addEventListener('click', () => {
 
 // 登出：回到登入畫面
 logoutBtn.addEventListener('click', () => {
+  suppressLoginError = true;
   try { loginAbortController?.abort(); } catch (_) {}
-  setLoginBusy(false);
 
   // 清掉「正在連線伺服器…」的計時器
   if (loginSlowHintTimer) {
