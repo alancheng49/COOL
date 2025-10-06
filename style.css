@@ -173,3 +173,60 @@ button:disabled{ opacity:.6; cursor:not-allowed; }
   box-sizing: border-box;
   font-size: 16px; /* 避免 iOS 自動放大 */
 }
+
+/* --- 共同：導覽列排版 --- */
+.nav-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 16px;
+}
+.nav-row .spacer { flex: 1; }
+
+/* 預設：桌機顯示側欄的繳交、隱藏行動版繳交 */
+#submit-btn-mobile { display: none; }
+
+/* --- Quiz 主要排版（桌機） --- */
+#quiz-layout {
+  display: grid;
+  grid-template-columns: 1fr 280px; /* 主題區 + 側欄 */
+  gap: 16px;
+}
+
+/* --- 手機版 --- */
+@media (max-width: 768px) {
+  /* 隱藏側欄，改用底部繳交鈕 */
+  #sidebar { display: none; }
+  #submit-btn-mobile { display: inline-flex; }
+
+  /* 主區改直排 */
+  #quiz-layout { display: block; }
+
+  /* 底部固定導覽列，讓繳交鈕不會消失 */
+  .nav-row {
+    position: sticky;
+    bottom: 0;
+    left: 0; right: 0;
+    padding: 10px 0;
+    background: #fff;
+    border-top: 1px solid #e5e7eb;
+    box-shadow: 0 -2px 10px rgba(0,0,0,.06);
+    z-index: 20;
+  }
+
+  /* 預留底部空間避免內容被 sticky 蓋住 */
+  #question-panel { padding-bottom: 72px; }
+
+  /* 小螢幕更好排：按鈕可以換行 */
+  .nav-row { flex-wrap: wrap; row-gap: 8px; }
+  #prev-btn, #next-btn, #submit-btn-mobile {
+    flex: 1 1 calc(50% - 8px);
+  }
+}
+
+/* 極小裝置再鬆一點 */
+@media (max-width: 360px) {
+  #prev-btn, #next-btn, #submit-btn-mobile {
+    flex: 1 1 100%;
+  }
+}

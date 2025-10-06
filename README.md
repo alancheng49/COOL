@@ -20,3 +20,5 @@ The very first version of the system!
 - modularized .js files.
 - the site is now in multi-pages.
 - stored questions.json files in a folder.
+#### b1.3.1
+- fixed a bug where submitting isn't available on mobile devices.
