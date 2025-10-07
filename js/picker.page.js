@@ -46,10 +46,10 @@ $('#start-quiz-btn').addEventListener('click', () => {
     time_limit_minutes: Number(opt.dataset.tlm || 0) || null
   });
 
-  location.href = `quiz.html?v=b1.3.1 || Date.now()}`;
+  location.href = `quiz.html?v=v2.0.0 || Date.now()}`;
 });
 
 $('#logout-btn').addEventListener('click', () => {
   clearSession();
-  location.href = `login.html?v=b1.3.1 || Date.now()}`;
+  location.href = `login.html?v=v2.0.0 || Date.now()}`;
 });

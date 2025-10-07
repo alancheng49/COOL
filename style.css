@@ -1,232 +1,328 @@
-/* 基本樣式 */
+/* ========== Base ========== */
+* { box-sizing: border-box; }
+html, body { height: 100%; }
 body {
-  font-family: 'Microsoft JhengHei','微軟正黑體',sans-serif;
+  font-family: 'Microsoft JhengHei', '微軟正黑體', system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;
   background-color: #f0f2f5;
-  display: flex;
-  justify-content: center;
-  align-items: flex-start;
-  min-height: 100vh;
   margin: 0;
-  padding: 24px 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .container {
-  background-color: #fff;
+  background: #fff;
+  width: 92%;
+  max-width: 980px;
   padding: 24px;
-  border-radius: 10px;
-  box-shadow: 0 4px 12px rgba(0,0,0,.08);
-  width: 100%;
-  max-width: 980px; /* 放寬以容納側欄 */
+  border-radius: 12px;
+  box-shadow: 0 6px 18px rgba(0,0,0,.08);
 }
 
-h1, h2 { text-align: center; color: #333; }
+h1, h2, h3 { color: #333; margin: 0 0 12px; text-align: center; }
+
+/* ========== Forms / Buttons ========== */
+#login-container {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+input[type="text"],
+input[type="password"]{
+  width: 100%;
+  padding: 12px 14px;
+  border: 1px solid #cfcfcf;
+  border-radius: 8px;
+  font-size: 16px;
+  background: #fff;
+  outline: none;
+}
+
+button {
+  padding: 12px 16px;
+  border: 0;
+  border-radius: 8px;
+  background: #1976d2;
+  color: #fff;
+  font-size: 16px;
+  cursor: pointer;
+  transition: background .2s ease, opacity .2s ease;
+}
+button:hover { background: #125ea7; }
+button:disabled { opacity:.6; cursor:not-allowed; }
+button.secondary { background: #6b7280; }
+button.secondary:hover { background: #555c69; }
+button.danger { background: #d32f2f; }
+button.danger:hover { background: #b22525; }
+
+.error-message {
+  color: #d32f2f;
+  min-height: 20px;   /* 確保未出現時不跳動 */
+  text-align: center;
+}
+
+/* 小工具 */
 .row { display: flex; align-items: center; }
 .gap8 { gap: 8px; }
 .spacer { flex: 1; }
-
-/* 登入 */
-#login-container { display: flex; flex-direction: column; gap: 12px; }
-input[type="text"], input[type="password"]{
-  padding: 12px; border:1px solid #ccc; border-radius:6px; font-size:16px;
-}
-button{
-  padding: 10px 14px; border: none; border-radius: 6px;
-  background:#007bff; color:#fff; font-size:16px; cursor: pointer;
-  transition: background-color .2s ease;
-}
-button:hover{ background:#0367d0; }
-button.secondary{ background:#6c757d; }
-button.secondary:hover{ background:#5b636a; }
-button.danger{ background:#dc3545; }
-button.danger:hover{ background:#c12b3a; }
-button:disabled{ opacity:.6; cursor:not-allowed; }
-.error-message{ color:#d33; text-align:center; min-height:20px; }
-
-#picker-container .row.gap8 {
-  margin-top: 12px;          /* 直接對那一排加上邊距 */
-}
-
-/* 測驗主版面：主面板 + 側欄 */
-#quiz-layout{ display: flex; gap: 18px; }
-#question-panel{ flex: 1 1 auto; min-width: 0; }
-#sidebar{
-  width: 260px; flex: 0 0 260px;
-  border-left: 1px solid #eee; padding-left: 14px;
-}
-.side-head{
-  display:flex; align-items:center; gap:10px; margin-bottom:10px;
-}
-.side-head h3{
-  margin: 0; flex: 0 0 auto; font-size: 16px; color:#333;
-}
-
-/* 計時器樣式（在側欄標題列） */
-.timer{
-  display:none; /* 無限時就隱藏，JS 啟用時會改成 inline-flex */
-  align-items:center;
-  font-variant-numeric: tabular-nums;
-  font-size: 12px;
-  color:#334155;
-  background:#eef2ff;
-  border:1px solid #b9c7ff;
-  padding: 4px 10px;
-  border-radius: 9999px;
-  box-shadow: 0 1px 0 rgba(0,0,0,.03);
-}
-.timer.danger{
-  color:#b4232a;
-  background:#ffe8ea;
-  border-color:#f1a7ad;
-}
-
-/* 題目清單（加重版） */
-#question-list{
-  list-style:none; padding:0; margin:0;
-  display:flex; flex-direction:column; gap:8px;
-}
-.q-item{
-  display:flex; align-items:center; gap:8px;
-  padding: 10px 12px;
-  border:1px solid #b9c7ff;
-  border-radius:10px;
-  background:#eef2ff;                  /* 未作答 */
-  color:#1f3b7a;
-  cursor:pointer; font-size:15px; font-weight:500;
-  transition: background-color .15s, border-color .15s, box-shadow .15s;
-}
-.q-item:hover{
-  background:#e1e8ff;
-  border-color:#8aa3ff;
-  box-shadow:0 1px 0 rgba(0,0,0,.03);
-}
-.q-item.current{
-  background:#cfe1ff;
-  border-color:#2b6fff;
-  color:#0f2c6a;
-  box-shadow:0 0 0 2px rgba(43,111,255,.18) inset;
-}
-.q-item.answered:not(.current){
-  background:#e8f7ee;                  /* 已作答 */
-  border-color:#93d3a7;
-  color:#135a36;
-}
-.q-item.answered::after{
-  content:"✓";
-  margin-left:auto;
-  color:#1aa34a;
-  font-weight:800;
-}
-
-/* 選項 */
-#options-container { display:flex; flex-direction:column; gap:10px; margin: 20px 0; }
-.option{
-  padding: 12px; border:1px solid #ddd; border-radius:6px; cursor:pointer;
-  transition: background-color .2s, border-color .2s;
-}
-.option:hover{ background:#f0f8ff; }
-.option.selected{ background:#cfe2ff; border-color:#007bff; }
-
-/* 導航列 */
-.nav-row{ display:flex; align-items:center; gap:8px; margin-top: 10px; }
-
-/* 答案清單 */
-#score{ text-align:center; font-size:24px; font-weight:700; color:#28a745; }
-#wrong-answers-list{ list-style:none; padding:0; }
-#wrong-answers-list li{
-  background:#fff3f3; border-left:5px solid #dc3545; padding:10px; margin-bottom:10px;
-}
-
-/* 文字 70% | 圖片 30% 試題排版 */
-.q-row{ display:flex; align-items:flex-start; gap:16px; }
-.q-text{ flex: 7 1 0; min-width: 0; }
-.q-media{ flex: 3 1 0; max-width: 30%; }
-.q-media img{ width:100%; height:auto; display:block; border-radius:4px; }
-
-/* 小螢幕：側欄下移並隱藏側欄繳交，改用下方那顆 */
-@media (max-width: 820px){
-  #quiz-layout{ flex-direction: column; }
-  #sidebar{ width:auto; flex:auto; border-left:none; padding-left:0; }
-  #submit-btn{ display:none; }         /* 側欄那顆繳交隱藏 */
-  #submit-btn-mobile{ display:inline-flex; } /* 導航列那顆顯示 */
-}
-
-/* 預設桌機版：隱藏 mobile submit */
-#submit-btn-mobile{ display:none; }
-
-/* 共用 */
-.hidden{ display:none !important; }
-
-/* 登入忙碌視覺 */
-#login-btn.is-busy{ pointer-events:none; }
+.hidden { display: none !important; }
 
 /* 左上角版本號 */
 #build-version{
-  position: fixed; top: 8px; left: 10px;
-  font-size: 10pt; color:#888; z-index: 9999;
-  user-select:none; pointer-events:none; opacity:.95;
+  position: fixed;
+  top: 8px;
+  left: 10px;
+  font-size: 10pt;
+  color: #888;
+  z-index: 9999;
+  user-select: none;
+  pointer-events: none;
+  opacity: .95;
 }
 
-/* 讓登入輸入框一致且滿寬 */
-#login-container input[type="text"],
-#login-container input[type="password"] {
-  width: 100%;
-  box-sizing: border-box;
-  font-size: 16px; /* 避免 iOS 自動放大 */
-}
-
-/* --- 共同：導覽列排版 --- */
-.nav-row {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  margin-top: 16px;
-}
-.nav-row .spacer { flex: 1; }
-
-/* 預設：桌機顯示側欄的繳交、隱藏行動版繳交 */
-#submit-btn-mobile { display: none; }
-
-/* --- Quiz 主要排版（桌機） --- */
-#quiz-layout {
+/* ========== Quiz Layout (Grid 版) ========== */
+#quiz-layout{
   display: grid;
-  grid-template-columns: 1fr 280px; /* 主題區 + 側欄 */
+  grid-template-columns: 1fr 280px; /* 主面板 + 側欄 */
+  gap: 18px;
+}
+
+/* 主面板 */
+#question-panel{
+  display: flex;
+  flex-direction: column;
   gap: 16px;
 }
 
-/* --- 手機版 --- */
-@media (max-width: 768px) {
-  /* 隱藏側欄，改用底部繳交鈕 */
-  #sidebar { display: none; }
-  #submit-btn-mobile { display: inline-flex; }
+/* 題幹：文字 + 圖片 70/30 排版 */
+.q-row { display: flex; align-items: flex-start; gap: 16px; }
+.q-text { flex: 7 1 0; min-width: 0; }
+.q-media { flex: 3 1 0; max-width: 30%; }
+.q-media img { width: 100%; height: auto; display: block; border-radius: 6px; }
 
-  /* 主區改直排 */
-  #quiz-layout { display: block; }
+/* 純文字題幹 */
+#question-content h2 { text-align: left; }
+#question-content img { max-width: 100%; height: auto; display: block; }
 
-  /* 底部固定導覽列，讓繳交鈕不會消失 */
-  .nav-row {
+/* 選項 */
+#options-container{
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.option{
+  padding: 12px 14px;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  background: #fff;
+  cursor: pointer;
+  transition: background .15s ease, border-color .15s ease, box-shadow .15s ease;
+}
+.option:hover { background: #f7fbff; }
+.option.selected{
+  background: #e7f2ff;
+  border-color: #1976d2;
+  box-shadow: 0 0 0 2px rgba(25,118,210,.12) inset;
+}
+
+/* 主面板下方導覽列 */
+.nav-row{
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+/* 側欄 */
+#sidebar{
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.side-head{
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 8px;
+  align-items: center;
+}
+.side-head h3{
+  margin: 0;
+  text-align: left;
+}
+
+/* 題號清單 */
+#question-list{
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 8px;
+}
+#question-list .q-item{
+  width: 100%;
+  text-align: left;
+  padding: 10px 12px;
+  background: #f3f4f6;
+  color: #374151;
+  border-radius: 8px;
+  border: 1px solid #e5e7eb;
+  cursor: pointer;
+  transition: background .15s ease, border-color .15s ease;
+}
+#question-list .q-item:hover{ background: #eef2f7; }
+#question-list .q-item.current{
+  background: #e7f2ff;
+  border-color: #1976d2;
+}
+#question-list .q-item.answered{
+  position: relative;
+  border-color: #34a853;
+  background: #e9f7ef;
+}
+#question-list .q-item.answered::after{
+  content: "✓";
+  position: absolute;
+  right: 10px;
+  top: 8px;
+  color: #2e7d32;
+  font-weight: 700;
+}
+
+/* 計時器（與 JS 對齊） */
+.timer{
+  justify-self: end;
+  font-size: 12px;
+  color: #666;
+  padding: 6px 10px;
+  border: 1px solid #e5e7eb;
+  border-radius: 999px;
+  background: #fafafa;
+  display: inline-flex;  /* JS 會控制顯示/隱藏 */
+  align-items: center;
+  gap: 6px;
+}
+.timer.danger{ color: #c0392b; border-color: #f2c6c6; background: #fff6f6; }
+
+/* 結果頁 */
+#score{
+  text-align: center;
+  font-size: 22px;
+  font-weight: 700;
+  color: #2e7d32;
+}
+#wrong-answers-list{
+  list-style: none;
+  margin: 16px 0 0;
+  padding: 0;
+  display: grid;
+  gap: 10px;
+}
+#wrong-answers-list li{
+  background: #fff7f7;
+  border-left: 5px solid #dc3545;
+  padding: 12px;
+  border-radius: 6px;
+}
+
+/* ========== Cloze（唯一保留版本，與 JS 對齊） ========== */
+.cloze-wrap{
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.cloze-slot{
+  border: 1px dashed #cbd5e1;
+  border-radius: 6px;
+  padding: 8px 10px;
+  background: #f8fafc;
+  font-size: 14px;
+}
+.cloze-slot b{ color: #0f172a; }
+.cloze-grid{
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0,1fr));
+  gap: 8px;
+  margin-top: 8px;
+}
+.cloze-btn{
+  padding: 8px 10px;
+  border-radius: 8px;
+  border: 1px solid #e5e7eb;
+  background: #fff;
+  cursor: pointer;
+  transition: background .15s ease, border-color .15s ease, transform .05s ease;
+}
+.cloze-btn:hover{ background: #f7fbff; }
+.cloze-btn.selected{
+  background: #e7f2ff;
+  border-color: #1976d2;
+}
+
+/* --- Cloze: 將新版 quiz-ui.js 的類名對應到現有樣式 --- */
+.cloze-blank {        /* 等同 .cloze-slot */
+  border: 1px dashed #cbd5e1;
+  border-radius: 6px;
+  padding: 8px 10px;
+  background: #f8fafc;
+  font-size: 14px;
+}
+.cloze-blank .label { font-weight: 600; color: #0f172a; margin-bottom: 6px; }
+
+.cloze-options {      /* 等同 .cloze-grid */
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0,1fr));
+  gap: 8px;
+  margin-top: 8px;
+}
+
+.cloze-option {       /* 等同 .cloze-btn */
+  padding: 8px 10px;
+  border-radius: 8px;
+  border: 1px solid #e5e7eb;
+  background: #fff;
+  cursor: pointer;
+  transition: background .15s ease, border-color .15s ease, transform .05s ease;
+}
+.cloze-option:hover   { background: #f7fbff; }
+.cloze-option.selected{
+  background: #e7f2ff;
+  border-color: #1976d2;
+}
+
+/* ========== Mobile ========== */
+@media (max-width: 768px){
+  .container { width: 96%; padding: 18px; }
+
+  /* 排版改單欄，側欄到下方 */
+  #quiz-layout{
+    grid-template-columns: 1fr;
+    gap: 14px;
+  }
+  #sidebar { order: 2; }
+
+  /* 題幹直排 */
+  .q-row{ flex-direction: column; }
+  .q-media{ max-width: 100%; }
+
+  /* 底部 sticky 導覽（保證行動版繳交鈕可見） */
+  .nav-row{
     position: sticky;
     bottom: 0;
-    left: 0; right: 0;
-    padding: 10px 0;
     background: #fff;
+    padding: 10px;
+    margin: 0 -10px -10px;         /* 撐滿容器 */
     border-top: 1px solid #e5e7eb;
-    box-shadow: 0 -2px 10px rgba(0,0,0,.06);
-    z-index: 20;
+    display: grid;
+    grid-template-columns: auto 1fr auto;
+    gap: 8px;
   }
 
-  /* 預留底部空間避免內容被 sticky 蓋住 */
-  #question-panel { padding-bottom: 72px; }
-
-  /* 小螢幕更好排：按鈕可以換行 */
-  .nav-row { flex-wrap: wrap; row-gap: 8px; }
-  #prev-btn, #next-btn, #submit-btn-mobile {
-    flex: 1 1 calc(50% - 8px);
-  }
+  /* 行動版專用繳交 */
+  #submit-btn-mobile{ display: inline-flex; }
 }
 
-/* 極小裝置再鬆一點 */
-@media (max-width: 360px) {
-  #prev-btn, #next-btn, #submit-btn-mobile {
-    flex: 1 1 100%;
-  }
-}
+/* 預設：行動版繳交隱藏，手機媒體查詢會打開 */
+#submit-btn-mobile{ display: none; }
+
+/* 登入按鈕 busy 樣式（雙保險） */
+#login-btn.is-busy{ pointer-events: none; }

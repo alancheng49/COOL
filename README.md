@@ -22,3 +22,7 @@ The very first version of the system!
 - stored questions.json files in a folder.
 #### b1.3.1
 - fixed a bug where submitting isn't available on mobile devices.
+### v2.0.0-beta.1
+- added new question type, "cloze".
+- improved the UI
+- changed the logic about images.
