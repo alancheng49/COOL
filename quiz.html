@@ -48,15 +48,20 @@
     </div>
 
     <div id="results-container" class="hidden">
-      <h1>測驗結果</h1>
-      <p id="score"></p>
-      <p id="submit-status" style="color:#666;"></p>
-      <h3>錯題分析：</h3>
-      <ul id="wrong-answers-list"></ul>
-      <div class="row gap8">
+    <div class="results-head">
+        <h1>測驗結果</h1>
+        <p id="score"></p>
+        <p id="submit-status" style="color:#666;"></p>
+    </div>
+
+    <div class="results-body">
+        <ul id="wrong-answers-list"></ul>
+    </div>
+
+    <div class="results-actions row gap8">
         <button id="restart-btn">重新測驗</button>
-        <button id="back-to-picker-btn" class="secondary" type="button">回到題庫選擇</button>
-      </div>
+        <button id="back-to-picker-btn" type="button" class="secondary">回到題庫選擇</button>
+    </div>
     </div>
   </div>
 </body>

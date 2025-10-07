@@ -29,6 +29,7 @@ export async function showResults() {
 
   quizContainer.classList.add('hidden');
   resultsContainer.classList.remove('hidden');
+  resultsContainer.scrollTop = 0;
 
   let score = 0;
   wrongList.innerHTML = '';

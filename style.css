@@ -321,6 +321,59 @@ button.danger:hover { background: #b22525; }
   #submit-btn-mobile{ display: inline-flex; }
 }
 
+/* 結果頁骨架：上、下固定，中間滾動 */
+#results-container{
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+/* 讓標題/分數固定在頂端 */
+.results-head{
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  background: #fff;
+  padding: 16px 18px 12px;
+  border-bottom: 1px solid #eee;
+}
+
+/* 錯題清單所在的可捲動區域：
+   100dvh 可避免 iOS Safari 位址列高度變化問題 */
+.results-body{
+  overflow: auto;
+  /* 扣掉頭尾的高度：自行微調 180~220px 之間最合適 */
+  max-height: calc(100dvh - 200px);
+  padding: 8px 0 12px;
+}
+
+/* 底部按鈕列固定在底部 */
+.results-actions{
+  position: sticky;
+  bottom: 0;
+  z-index: 9;
+  background: #fff;
+  padding: 12px 18px;
+  border-top: 1px solid #eee;
+}
+
+/* 讓錯題項目之間有間距 */
+#wrong-answers-list{
+  list-style: none;
+  margin: 0;
+  padding: 0 18px 12px;
+  display: grid;
+  gap: 12px;
+}
+
+/* 你原本的錯題卡片樣式可保留；示意： */
+#wrong-answers-list li{
+  background: #fff3f3;
+  border-left: 5px solid #dc3545;
+  padding: 12px;
+  border-radius: 8px;
+}
+
 /* 預設：行動版繳交隱藏，手機媒體查詢會打開 */
 #submit-btn-mobile{ display: none; }
 
