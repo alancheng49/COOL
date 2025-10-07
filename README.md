@@ -9,16 +9,16 @@ Something built for fun :)
 
 # Release Notes
 ## Build versions
-### b1.0.0
+### v1.0.0
 The very first version of the system!
-### b1.1.0
+### v1.1.0
 - Fixed some bugs.
 - Added problem list.
-### b1.2.0
+### v1.2.0
 - Added timer.
-### b1.3.0
+### v1.3.0
 - modularized .js files.
 - the site is now in multi-pages.
 - stored questions.json files in a folder.
-#### b1.3.1
+#### v1.3.1
 - fixed a bug where submitting isn't available on mobile devices.
