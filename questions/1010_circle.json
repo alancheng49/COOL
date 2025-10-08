@@ -1,0 +1,52 @@
+[
+  {
+    "question_type": "cloze",
+    "display_type": "text",
+    "question_content": "一圓半徑為$r$，求圓周長為何？",
+    "cloze_template": "$Ans = (1)\\cdot(2)\\cdot r$",
+    "cloze_options": [
+      ["0","1","2","3","4","5","6","7","8","9","-","$\\pi$"],
+      ["0","1","2","3","4","5","6","7","8","9","-","$\\pi$"]
+    ],
+    "cloze_answer_indices": [2,11]
+  },
+  {
+    "question_type": "cloze",
+    "display_type": "text",
+    "question_content": "一圓半徑為$r$，求圓面積為何？",
+    "cloze_template": "$Ans = (1)r^2$",
+    "cloze_options": [
+      ["0","1","2","3","4","5","6","7","8","9","-","$\\pi$"]
+    ],
+    "cloze_answer_indices": [11]
+  },
+  {
+    "question_type": "choice",
+    "display_type": "text",
+    "question_content": "右圖中，對於$\\overset{\\frown}{AB}$，\\theta的名稱為？",
+    "question_image": "questions/images/1010_circle/img1.jpg",
+    "options": ["圓心角","圓周角","圓內角","內心"],
+    "answer": "圓心角"
+  },
+  {
+    "question_type": "choice",
+    "display_type": "text",
+    "question_content": "承上題，\\overline{AB}的名稱為？",
+    "question_image": "questions/images/1010_circle/img1.jpg",
+    "options": ["優弧","弦","劣弧"],
+    "answer": "弦"
+  },
+  {
+    "question_type": "cloze",
+    "display_type": "text",
+    "question_content": "承上題，若$\\theta=30\\degree$，半徑為$2$，令扇形面積為$A$，扇形周長為$S$，求$A+S=?$",
+    "cloze_template": "$A+S=\\frac{(1)}{(2)}\\pi+(3)$",
+    "question_image": "questions/images/1010_circle/img1.jpg",
+    "cloze_options": [
+      ["0","1","2","3","4","5","6","7","8","9","-","$\\pm$"],
+      ["0","1","2","3","4","5","6","7","8","9","-","$\\pm$"],
+      ["0","1","2","3","4","5","6","7","8","9","-","$\\pm$"]
+    ],
+    "cloze_answer_indices": [2,3,4]
+  }
+]
