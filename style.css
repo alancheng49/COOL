@@ -374,6 +374,116 @@ button.danger:hover { background: #b22525; }
   border-radius: 8px;
 }
 
+/* ====== History (兩欄版面) ====== */
+
+/* 容器寬度可視網站基準微調 */
+.history-container { max-width: 1200px; }
+
+/* 頁首固定在可視範圍上方，方便切換 Tab 與返回 */
+.history-head {
+  position: sticky;
+  top: 8px;
+  z-index: 5;
+  background: #fff;
+  padding-top: 4px;
+  margin-bottom: 12px;
+}
+.history-head h1 { margin: 0 0 8px; line-height: 1.2; }
+.head-actions { align-items: center; }
+
+/* 主體為左右兩欄：左清單 300px，右詳細自動填滿 */
+.history-body {
+  display: grid;
+  grid-template-columns: 300px 1px minmax(0, 1fr); /* 左 300px｜中間 1px 分隔｜右自動 */
+  gap: 16px;
+  align-items: start;
+}
+
+/* 左欄：清單可捲動，高度扣掉 header 約略值（依站上其他區塊調整） */
+.history-list {
+  height: calc(100dvh - 170px);
+  overflow: auto;
+  padding-right: 4px;
+  display: grid;
+  gap: 8px;
+
+  align-content: start;
+}
+
+/* 清單每列（沿用你原有 row/card 風格） */
+.hist-row {
+  cursor: pointer;
+  align-items: center;
+}
+.hist-row:hover { box-shadow: 0 4px 14px rgba(0,0,0,.06); }
+.hist-row .secondary { white-space: nowrap; }
+/* 左列卡片三行樣式 */
+.hist-cell { display: grid; align-content: start; gap: 6px; }
+.hist-title { font-weight: 700; color: #111827; }
+.hist-meta  { color: #6b7280; font-size: 13px; display: flex; gap: 10px; }
+.hist-meta .hist-score { font-weight: 600; color: #111827; }
+
+/* 中間細分隔線（桌面版顯示） */
+.history-vrule {
+  width: 1px;
+  background: rgba(0,0,0,.08);
+  height: calc(100% - 4px);
+  align-self: stretch;
+  border-radius: 1px;
+}
+
+/* 右欄：詳細內容區（與 quiz 結果頁一致可長捲） */
+.history-detail {
+  min-height: calc(100dvh - 170px);
+  background: #fff;
+  border-radius: 12px;
+  box-shadow: 0 6px 22px rgba(0,0,0,.08);
+  padding: 16px 18px;
+  overflow: auto;
+}
+
+/* 空狀態（尚未選擇清單） */
+.empty-state {
+  display: grid;
+  align-content: start;
+  gap: 6px;
+  color: #666;
+}
+.empty-title {
+  font-size: 20px;
+  font-weight: 700;
+  color: #333;
+}
+.empty-desc { margin: 0; }
+
+/* 右欄內部「錯題分析」列表的視覺（沿用你結果頁語感） */
+#wrong-answers-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 14px;
+}
+#wrong-answers-list li {
+  background: #fff3f3;
+  border-left: 5px solid #dc3545;
+  padding: 12px;
+  border-radius: 6px;
+}
+
+/* RWD：寬度小於 900px 時改為單欄（清單在上、詳情在下） */
+@media (max-width: 900px) {
+  .history-body {
+    grid-template-columns: 1fr;
+    gap: 12px;
+  }
+  .history-vrule { display: none; }
+  .history-list, .history-detail {
+    height: auto;
+    min-height: 0;
+  }
+}
+
 /* 預設：行動版繳交隱藏，手機媒體查詢會打開 */
 #submit-btn-mobile{ display: none; }
 

@@ -66,6 +66,10 @@ function bindQuizEvents() {
     clearCurrentQuiz(); // ← 清掉目前選題，回 picker 重新選
     location.href = `picker.html?v=${BUILD_VERSION}`;
   });
+
+  document.getElementById('back-to-account-btn')?.addEventListener('click', ()=>{
+    location.href = `account.html?v=${BUILD_VERSION}`;
+  });
 }
 
 async function initQuiz() {

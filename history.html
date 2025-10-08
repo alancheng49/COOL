@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <title>COOL｜歷史紀錄</title>
+
+  <link rel="icon" href="assets/history/favicon-32.png?v=v2.0.0-b2" sizes="32x32" type="image/png">
+  <link rel="icon" href="assets/history/favicon-16.png?v=v2.0.0-b2" sizes="16x16" type="image/png">
+  <link rel="apple-touch-icon" href="assets/history/apple-touch-icon.png?v=v2.0.0-b2">
+  <meta name="theme-color" content="#0d6efd">
+
+  <!-- KaTeX -->
+  <link rel="stylesheet"
+        href="https://cdn.jsdelivr.net/npm/katex@0.16.10/dist/katex.min.css"
+        crossorigin="anonymous" />
+  <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.10/dist/katex.min.js" crossorigin="anonymous"></script>
+  <script defer id="katex-auto-render"
+          src="https://cdn.jsdelivr.net/npm/katex@0.16.10/dist/contrib/auto-render.min.js"
+          crossorigin="anonymous"></script>
+
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>歷史成績</title>
+
+  <!-- 你的全站樣式 -->
+  <link rel="stylesheet" href="style.css?v=v2.0.0-b2">
+
+  <!-- 頁面腳本（沿用你現有的抓歷史紀錄與渲染邏輯） -->
+  <script type="module" src="js/history.page.js?v=v2.0.0-b2"></script>
+</head>
+<body class="page--scroll">
+  <div class="container history-container">
+    <!-- 置頂區：標題 + 篩選 / 返回 -->
+    <div class="history-head">
+      <h1>歷史成績</h1>
+      <div class="row gap8 head-actions">
+        <button id="tab-best">最佳成績</button>
+        <button id="tab-all" class="secondary">全部作答</button>
+        <div class="spacer"></div>
+        <button id="back" class="secondary">← 返回帳號首頁</button>
+      </div>
+    </div>
+
+    <!-- 版面主體：左清單 + 右詳細 -->
+    <div class="history-body">
+      <!-- 左欄：歷史清單（由 JS 注入） -->
+      <section id="list" class="history-list" aria-label="歷史清單"></section>
+
+      <!-- 垂直分隔線（桌面版顯示） -->
+      <div class="history-vrule" aria-hidden="true"></div>
+
+      <!-- 右欄：詳細（初始為空狀態；點清單後由 JS 注入） -->
+      <section id="detail" class="history-detail" aria-label="錯題分析">
+        <div class="empty-state">
+          <div class="empty-title">錯題分析</div>
+          <p class="empty-desc">請從左側挑選一筆作答紀錄，這裡將顯示詳情與錯題分析。</p>
+        </div>
+      </section>
+    </div>
+  </div>
+</body>
+</html>

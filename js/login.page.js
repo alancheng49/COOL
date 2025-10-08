@@ -54,7 +54,7 @@ async function doLogin(){
     });
 
     // 導向題庫選擇
-    location.href = `picker.html?v=${window.BUILD_VERSION}`;
+    location.href = `account.html?v=${window.BUILD_VERSION}`;
   } catch(e){
     console.error(e);
     err.textContent = '登入服務暫時無法使用，請稍後再試';
