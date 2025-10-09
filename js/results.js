@@ -107,12 +107,17 @@ export async function showResults() {
 function renderStemHTML(q, idx){
   const disp = (q.display_type || 'text').toLowerCase();
   const isCloze = (q?.question_type || '').toLowerCase() === 'cloze';
-  const textStem = isCloze ? (q.cloze_template || q.question_content || '') 
-                           : (q.question_content || '');
+  // ★ Cloze：把「題幹 + 模板」一起顯示
+  const clozeStem = [
+    q.question_content ? `<div class="q-stem-main">${q.question_content}</div>` : '',
+    q.cloze_template   ? `<div class="q-stem-cloze" style="margin-top:6px;">${q.cloze_template}</div>` : ''
+  ].join('');
+  const textStem = isCloze ? (clozeStem || '') : (q.question_content || '');
 
-  // 純圖題（display_type = image）
   if (disp === 'image') {
-    return `<img src="${q.question_content}" alt="題目圖片 ${idx+1}" style="width:80%;max-width:280px;margin:10px 0;border-radius:4px;">`;
+    // ★ Cloze + image：圖片下方仍補 cloze_template
+    const img = `<img src="${q.question_content}" alt="題目圖片 ${idx+1}" style="width:80%;max-width:280px;margin:10px 0;border-radius:4px;">`;
+    return isCloze ? `${img}${q.cloze_template ? `<div class="q-stem-cloze" style="margin-top:6px;">${q.cloze_template}</div>` : ''}` : img;
   }
 
   // 文字 + 圖片（含 cloze 的 cloze_template）

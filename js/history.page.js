@@ -19,21 +19,31 @@ function pctStr(score, max) {
 
 // 與 results.js 一致的題幹渲染
 function renderStemHTML(q, idx){
-  const disp = (q?.display_type || 'text').toLowerCase();
+  const disp = (q.display_type || 'text').toLowerCase();
   const isCloze = (q?.question_type || '').toLowerCase() === 'cloze';
-  const textStem = isCloze ? (q?.cloze_template || q?.question_content || '')
-                           : (q?.question_content || '');
+  // ★ Cloze：把「題幹 + 模板」一起顯示
+  const clozeStem = [
+    q.question_content ? `<div class="q-stem-main">${q.question_content}</div>` : '',
+    q.cloze_template   ? `<div class="q-stem-cloze" style="margin-top:6px;">${q.cloze_template}</div>` : ''
+  ].join('');
+  const textStem = isCloze ? (clozeStem || '') : (q.question_content || '');
 
   if (disp === 'image') {
-    return `<img src="${q.question_content}" alt="題目圖片 ${idx+1}" style="width:80%;max-width:280px;margin:10px 0;border-radius:4px;">`;
+    // ★ Cloze + image：圖片下方仍補 cloze_template
+    const img = `<img src="${q.question_content}" alt="題目圖片 ${idx+1}" style="width:80%;max-width:280px;margin:10px 0;border-radius:4px;">`;
+    return isCloze ? `${img}${q.cloze_template ? `<div class="q-stem-cloze" style="margin-top:6px;">${q.cloze_template}</div>` : ''}` : img;
   }
-  if (q?.question_image) {
+
+  // 文字 + 圖片（含 cloze 的 cloze_template）
+  if (q.question_image) {
     return `
       <div class="q-row">
         <div class="q-text"><p><strong>題目：</strong>${textStem}</p></div>
         <div class="q-media"><img src="${q.question_image}" alt="題目圖片 ${idx+1}" /></div>
       </div>`;
   }
+
+  // 純文字（cloze 用 cloze_template；choice 用 question_content）
   return `<p><strong>題目：</strong>${textStem}</p>`;
 }
 

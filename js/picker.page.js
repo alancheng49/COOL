@@ -46,12 +46,12 @@ $('#start-quiz-btn').addEventListener('click', () => {
     time_limit_minutes: Number(opt.dataset.tlm || 0) || null
   });
 
-  location.href = `quiz.html?v=v2.0.0-b2 || Date.now()}`;
+  location.href = `quiz.html?v=v2.0.0-b3 || Date.now()}`;
 });
 
 $('#logout-btn').addEventListener('click', () => {
   clearSession();
-  location.href = `login.html?v=v2.0.0-b2 || Date.now()}`;
+  location.href = `login.html?v=v2.0.0-b3 || Date.now()}`;
 });
 
 document.getElementById('back-to-account-btn')?.addEventListener('click', () => {

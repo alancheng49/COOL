@@ -28,3 +28,6 @@ The very first version of the system!
 ### beta.2
 - now users can view their history.
 - improved the UI
+### beta.3
+- bug fixed.
+- improved the UI on mobile devices.
