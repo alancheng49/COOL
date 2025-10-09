@@ -300,9 +300,32 @@ button.danger:hover { background: #b22525; }
   }
   #sidebar { order: 2; }
 
+  /* 禁止整頁/容器的水平滾動（避免「左右滑」體感） */
+  html, body,
+  .container,
+  #quiz-layout,
+  #question-panel,
+  #question-content{
+    overflow-x: hidden !important;
+  }
+
   /* 題幹直排 */
   .q-row{ flex-direction: column; }
   .q-media{ max-width: 100%; }
+
+  /* ✅ 取消整個主面板的捲動：選項不在捲動容器內 */
+  #question-panel{
+    max-height: none !important;
+    overflow: visible !important;
+  }
+
+  /* ✅ 只讓題幹可捲動；保留空間給選項與底部導覽列 */
+  /* 這裡用 100dvh 扣掉導覽列和間距，避免被遮住 */
+  #question-content{
+    max-height: calc(100dvh - 220px);
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+  }
 
   /* 底部 sticky 導覽（保證行動版繳交鈕可見） */
   .nav-row{
