@@ -7,19 +7,6 @@ function isChoice(q){ return (q?.question_type||'').toLowerCase()==='choice'; }
 function isCloze(q){  return (q?.question_type||'').toLowerCase()==='cloze'; }
 function disp(q){     return (q?.display_type||'text').toLowerCase(); }
 
-
-// function assetUrl(src) {
-//   if (!src) return '';
-//   // 已是絕對網址或以 / 開頭就直接用（再加 cache-bust）
-//   if (/^https?:\/\//.test(src) || src.startsWith('/')) {
-//     return `${src}${src.includes('?') ? '&' : '?'}v=${encodeURIComponent(BUILD_VERSION)}`;
-//   }
-//   // 取出目前這份題庫 JSON 的資料夾當作基準
-//   const base = (state.selectedQuizFile || '').replace(/\/[^/]*$/, '/'); // e.g. "questions/"
-//   const full = base + src; // e.g. "questions/" + "questions_a/IMG_0426.JPG"
-//   return `${full}?v=${encodeURIComponent(BUILD_VERSION)}`;
-// }
-
 // 題目清單（側欄）
 export function renderSidebar() {
   const list = document.getElementById('question-list');

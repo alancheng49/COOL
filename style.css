@@ -489,3 +489,40 @@ button.danger:hover { background: #b22525; }
 
 /* 登入按鈕 busy 樣式（雙保險） */
 #login-btn.is-busy{ pointer-events: none; }
+
+/* ========== Scrollable Page Layout ========== */
+/* 關閉全站預設的置中，讓頁面可自然直向捲動 */
+body.page--scroll{
+  align-items: flex-start;
+  justify-content: center;
+}
+
+.page--scroll .container{
+  margin: 24px auto;
+}
+
+/* 題幹太長時，讓內容能換行、不被擠出畫面 */
+#question-content, #options-container, .q-text {
+  overflow-wrap: anywhere;   /* 公式或長字串也能折行 */
+  word-break: break-word;
+}
+
+/* 桌機也可能遇到小解析度，給主面板一個最小高度與彈性 */
+#question-panel { min-height: 0; }
+
+/* 手機與小螢幕：主面板獨立可捲動，底部導覽列 sticky 不會遮住內容 */
+@media (max-width: 768px){
+  /* 估算：把 sticky 導覽列（約 56~72px）與上下內距扣掉，避免被吃掉 */
+  #question-panel{
+    max-height: calc(100dvh - 140px);
+    overflow: auto;                 /* 題幹、選項過長時可在此容器內捲動 */
+    -webkit-overflow-scrolling: touch;  /* iOS 慣性捲動 */
+  }
+}
+
+/* 圖片安全縮放（你已有設定，這裡再補強一次以避免外層樣式覆蓋） */
+#question-content img, .q-media img{
+  max-width: 100%;
+  height: auto;
+  display: block;
+}
