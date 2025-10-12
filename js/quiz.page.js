@@ -26,6 +26,57 @@ window.addEventListener('DOMContentLoaded', () => {
   initQuiz();
 });
 
+// --- Help (如何使用) ---
+(function setupHelp(){
+  const btn = document.getElementById('help-btn');
+  const modal = document.getElementById('help-modal');
+  const closeBtn = document.getElementById('help-close');
+  const backdrop = document.getElementById('help-backdrop');
+  const content = document.getElementById('help-content');
+  if (!btn || !modal || !closeBtn || !backdrop || !content) return;
+
+  let loaded = false;
+
+  const mdToHtml = (md) => {
+    let html = md
+      .replace(/^### (.*)$/gm, '<h3>$1</h3>')
+      .replace(/^## (.*)$/gm, '<h2>$1</h2>')
+      .replace(/^# (.*)$/gm, '<h1>$1</h1>')
+      .replace(/^\s*-\s+(.*)$/gm, '<li>$1</li>')
+      .replace(/(\n<li>.*<\/li>)+/gms, (m)=>`<ul>${m.replace(/\n/g,'')}</ul>`)
+      .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
+      .replace(/\*(.+?)\*/g, '<em>$1</em>')
+      .replace(/`([^`]+?)`/g, '<code>$1</code>')
+      .replace(/\[([^\]]+)\]\(([^)]+)\)/g, '<a href="$2" target="_blank" rel="noopener">$1</a>');
+    html = html.split(/\n{2,}/).map(b=>{
+      if (/^<h\d|^<ul|^<pre|^<p|^<blockquote|^<table|^<img/.test(b.trim())) return b;
+      return `<p>${b.replace(/\n/g,'<br>')}</p>`;
+    }).join('\n');
+    return html;
+  };
+
+  function open(){ backdrop.classList.add('show'); modal.classList.add('show'); }
+  function close(){ modal.classList.remove('show'); backdrop.classList.remove('show'); }
+
+  btn.addEventListener('click', async ()=>{
+    open();
+    if (loaded) return;
+    try{
+      const res = await fetch('./help.md?ts=' + Date.now(), { cache:'no-store' });
+      if (!res.ok) throw new Error(res.status);
+      const text = await res.text();
+      content.innerHTML = mdToHtml(text);
+      // 若教學含數學，順便渲染 KaTeX
+      try { (await import('./katex.js')).renderAllMath(content); } catch {}
+    }catch(e){
+      content.innerHTML = `<p class="error-message">讀取 help.md 失敗：${e?.message||e}</p>`;
+    }
+    loaded = true;
+  });
+  closeBtn.addEventListener('click', close);
+  backdrop.addEventListener('click', close);
+})();
+
 function bindQuizEvents() {
   // 上/下一題
   document.getElementById('prev-btn')?.addEventListener('click', () => {
@@ -133,6 +184,10 @@ async function initQuiz() {
 
   console.log('[quiz] 題目數：', data.length);
 }
+
+window.addEventListener('beforeunload', (e) => {
+  e.preventDefault(); e.returnValue = '';
+});
 
 // ---- 小工具 ----
 function normalizeFileUrl(file, ver) {

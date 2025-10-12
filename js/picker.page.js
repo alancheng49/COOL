@@ -37,6 +37,11 @@ $('#start-quiz-btn').addEventListener('click', () => {
   const opt = select.selectedOptions[0];
   if (!opt) { errorEl.textContent = '請先選擇題庫'; return; }
 
+  const ok = confirm(
+    '即將開始測驗。\n\n提醒：開始後若中途關閉頁面、返回或重新整理，將視同未完成，成績可能記錄為未繳交或 0 分（依教師設定）。\n\n確認要開始嗎？'
+  );
+  if (!ok) return;
+
   // 存本次要作答的題庫資訊，給 quiz.html 讀
   saveCurrentQuiz({
     id:   opt.value,
