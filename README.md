@@ -21,13 +21,10 @@ The very first version of the system!
 ### v1.3.1
 - fixed a bug where submitting isn't available on mobile devices.
 ## v2.0.0
-### beta.1
 - added new question type, "cloze".
-- improved the UI
 - changed the logic about images.
-### beta.2
 - now users can view their history.
-- improved the UI
-### beta.3
+- improved the UI.
 - bug fixed.
-- improved the UI on mobile devices.
+## v2.1.0
+- added a json generator

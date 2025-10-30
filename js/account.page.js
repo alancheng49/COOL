@@ -14,6 +14,27 @@ window.addEventListener('DOMContentLoaded', ()=>{
     clearSession();
     location.href = `login.html?v=${window.BUILD_VERSION}`;
   });
+  // Admin-only: 題目 JSON 產生器
+  try {
+    if ((s.role||'').toLowerCase() === 'admin') {
+      const row = document.querySelector('.row.gap8');
+      if (row) {
+        const btn = document.createElement('button');
+        btn.id = 'to-editor';
+        btn.className = 'secondary';
+        btn.textContent = '題目 JSON 產生器（Admin）';
+        btn.addEventListener('click', ()=>{ location.href = `editor.html?v=${window.BUILD_VERSION}`; });
+        // 插在「查看歷史成績」與「登出」之間
+        const logoutBtn = document.getElementById('logout');
+        if (logoutBtn && logoutBtn.parentNode === row) {
+          row.insertBefore(btn, logoutBtn);
+        } else {
+          row.appendChild(btn);
+        }
+      }
+    }
+  } catch {}
+
 });
 
 // --- Help (如何使用) ---

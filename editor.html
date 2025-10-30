@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <title>COOL｜題目 JSON 產生器</title>
+
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <meta name="theme-color" content="#0d6efd">
+  <script>window.BUILD_VERSION='v2.0.0-b3';</script>
+  <link rel="stylesheet" href="style.css?v=v2.0.0-b3">
+  <!-- KaTeX 用於預覽數學式 -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.10/dist/katex.min.css" crossorigin="anonymous" />
+  <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.10/dist/katex.min.js" crossorigin="anonymous"></script>
+  <script defer id="katex-auto-render" src="https://cdn.jsdelivr.net/npm/katex@0.16.10/dist/contrib/auto-render.min.js" crossorigin="anonymous"></script>
+  <script type="module" src="js/editor.page.js?v=v2.0.0-b3"></script>
+
+  <style>
+    /* Editor 內頁的簡易樣式補強（盡量沿用既有 style.css） */
+    .editor-grid { display: grid; grid-template-columns: 1fr; gap: 12px; }
+    .grid-2 { display: grid; grid-template-columns: 160px minmax(0,1fr); gap: 10px; align-items: start; }
+    label { color: #374151; font-weight: 600; padding-top: 6px; }
+    textarea { width: 100%; min-height: 90px; resize: vertical; padding: 10px; border: 1px solid #cfcfcf; border-radius: 8px; font-size: 14px; }
+    input[type="text"], select, input[type="number"] { width: 100%; }
+    .hr { height: 1px; background: #e5e7eb; margin: 12px 0; }
+    .muted { color: #6b7280; font-size: 13px; }
+    .section { padding: 12px; border: 1px solid #e5e7eb; border-radius: 10px; background: #fafafa; }
+    .row-wrap { display: flex; flex-wrap: wrap; gap: 8px; }
+    .btn-small { padding: 6px 10px; font-size: 13px; }
+    .pill { background: #f3f4f6; border: 1px solid #e5e7eb; padding: 6px 10px; border-radius: 999px; }
+    .warn { color: #b45309; }
+    .good { color: #15803d; }
+    .bad  { color: #b91c1c; }
+    .card { background: #fff; border: 1px solid #e5e7eb; border-radius: 10px; padding: 12px; }
+    .list { display: grid; gap: 8px; }
+    .q-row { display: grid; grid-template-columns: 1fr auto; gap: 8px; align-items: center; }
+    .q-row-title { font-weight: 600; color: #111827; }
+    .q-row-meta { color: #6b7280; font-size: 12px; }
+    .nowrap { white-space: nowrap; }
+    .hidden { display: none !important; }
+  
+    /* preview-neutral */
+    #previewQ-modal .help-body{ background:#fff; color:#111; }
+    #previewQ-content .list{ list-style:none; margin:0; padding:0; display:grid; gap:12px; }
+    #previewQ-content .card{ background:#fff; border:1px solid #e5e7eb; border-radius:10px; padding:12px; }
+    #previewQ-content .opt-list{ list-style:none; padding-left: 1.2rem; }
+    #previewQ-content .opt-item{ display:flex; align-items:center; gap:8px; }
+    #previewQ-content .opt-bullet{ font-weight:400; }
+    </style>
+</head>
+<body class="page--scroll">
+  <div class="container">
+    <h1>題目 JSON 產生器（Admin）</h1>
+
+    <div class="row gap8" style="margin-bottom:10px;">
+      <button id="back-to-account" class="secondary">回帳號首頁</button>
+      <div class="spacer"></div>
+      <span class="pill">目前暫存題數：<b id="count">0</b></span>
+      <button id="logout" class="danger">登出</button>
+    </div>
+
+    <div class="section editor-grid">
+      <div class="grid-2">
+        <label for="file-name">輸出檔名</label>
+        <input id="file-name" type="text" placeholder="questions/your-quiz.json" />
+      </div>
+      <div class="muted">預設放在 <code>/questions/</code> 下，存檔會下載成一個 <code>.json</code> 檔，之後再上傳到你的伺服器或雲端。</div>
+    </div>
+
+    <div class="hr"></div>
+
+    <h2 style="text-align:left;">建立一題</h2>
+    <div id="form" class="section">
+      <div class="grid-2">
+        <label for="qtype">question_type</label>
+        <select id="qtype">
+          <option value="choice">choice</option>
+          <option value="cloze">cloze</option>
+        </select>
+      </div>
+
+      <div class="grid-2">
+        <label for="display">display_type</label>
+        <select id="display">
+          <option value="text">text</option>
+          <option value="image">image</option>
+        </select>
+      </div>
+
+      <div class="grid-2">
+        <label for="qcontent">question_content</label>
+        <textarea id="qcontent" placeholder="題幹（或當 display=image 時，填圖片路徑）"></textarea>
+      </div>
+
+      <div class="grid-2" id="row-qimg">
+        <label for="qimg">question_image（可選）</label>
+        <input id="qimg" type="text" placeholder="questions/images/xxx.jpg（僅 display=text 才會出現圖）" />
+      </div>
+
+      <!-- choice fields -->
+      <div id="choice-fields" class="section">
+        <div class="grid-2">
+          <label for="opt-json">options</label>
+          <textarea id="opt-json" placeholder='請輸入陣列，例如：["A","B","C","D"] 或用逗號分隔 A,B,C,D'></textarea>
+        </div>
+        <div class="grid-2">
+          <label for="ans">answer</label>
+          <input id="ans" type="text" placeholder="正確答案（需與 options 其中一個相同）" />
+        </div>
+      </div>
+
+      <!-- cloze fields -->
+      <div id="cloze-fields" class="section hidden">
+        <div class="grid-2">
+          <label for="tmpl">cloze_template</label>
+          <textarea id="tmpl" placeholder="$Ans = (1)\cdot(2)\cdot r"></textarea>
+        </div>
+
+        <div class="grid-2">
+          <label>cloze_options</label>
+          <div>
+            <div id="sets" class="list"></div>
+            <div class="row-wrap" style="margin-top:8px;">
+              <button id="add-set" type="button" class="btn-small">新增一組選項列</button>
+              <button id="add-default-set" type="button" class="btn-small">新增預設（0-9, -, $\pm$）</button>
+            </div>
+            <div class="muted" style="margin-top:6px;">每一「組」是一個空格的選項清單。用逗號分隔即可，例如：<code>0,1,2,3,4,5,6,7,8,9,-,$\pi$</code></div>
+          </div>
+        </div>
+
+        <div class="grid-2">
+          <label for="ans-idx">cloze_answer_indices</label>
+          <input id="ans-idx" type="text" placeholder="用逗號分隔，例如：2,11" />
+        </div>
+      </div>
+
+      <div class="row gap8" style="margin-top:8px;">
+        <button id="add-to-draft">加入清單</button>
+        <button id="reset-form" class="secondary">清空表單</button>
+      </div>
+      <p id="form-error" class="error-message"></p>
+    </div>
+
+    <div class="hr"></div>
+
+    <h2 style="text-align:left;">草稿清單</h2>
+    <div id="draft" class="section">
+      <div id="empty-draft" class="muted">尚無題目。請先在上方建立一題並加入清單。</div>
+      <div id="draft-list" class="list"></div>
+    </div>
+
+    <div class="hr"></div>
+
+    <h2 style="text-align:left;">輸出</h2>
+    <div class="section">
+      <div class="row-wrap">
+        <button id="preview-questions" type="button" class="secondary">預覽題目</button>
+        <button id="preview" type="button" class="secondary">預覽 JSON</button>
+        <button id="copy" type="button" class="secondary">複製到剪貼簿</button>
+        <button id="download" type="button">下載 JSON</button>
+        <button id="clear-draft" type="button" class="danger">清空清單</button>
+      </div>
+      <textarea id="preview-box" class="muted" style="margin-top:10px; min-height:160px;" placeholder="點「預覽 JSON」顯示內容"></textarea>
+      <p class="muted">提醒：輸出的 JSON 會是「題目物件的陣列」。放到你的題庫檔（或直接當整份題庫檔）即可。</p>
+    </div>
+  </div>
+
+<!-- 題目預覽 Modal（沿用 help-modal 樣式） -->
+  <div id="previewQ-backdrop" class="help-modal-backdrop"></div>
+  <div id="previewQ-modal" class="help-modal" role="dialog" aria-modal="true" aria-labelledby="previewQ-title">
+    <div class="help-head">
+      <h3 id="previewQ-title">題目預覽</h3>
+      <button id="previewQ-close" class="help-close secondary" type="button">關閉</button>
+    </div>
+    <div id="previewQ-content" class="help-body">
+      <p class="muted">尚無題目可預覽，請先加入至少一題。</p>
+    </div>
+  </div>
+</body>
+</html>

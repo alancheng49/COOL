@@ -37,3 +37,61 @@ export async function fetchAttemptDetail(attempt_id) {
   const res = await fetch(url, { method:'GET', cache:'no-store' });
   return res.json().catch(()=>null);
 }
+
+// ===== 預留：上傳 quiz 與 answer keys（Apps Script 端稍後實作） =====
+export async function upsertQuiz(meta) {
+  // 建議欄位：{ quiz_id, quiz_version, title, total_points, is_active, file, time_limit_minutes }
+  const res = await fetch(WEBAPP_URL, {
+    method: 'POST',
+    headers: { 'Content-Type': 'text/plain' },
+    body: JSON.stringify({ action: 'upsert_quiz', ...meta })
+  });
+  return res.json().catch(()=>null);
+}
+
+export async function upsertAnswerKeys(quiz_id, quiz_version, keys) {
+  // keys: [{ q_index, correct_index }] 或 [{ q_index, correct_indices: [...] }]
+  const payload = { action: 'upsert_answer_keys', quiz_id, quiz_version, keys };
+  const res = await fetch(WEBAPP_URL, {
+    method: 'POST',
+    headers: { 'Content-Type': 'text/plain' },
+    body: JSON.stringify(payload)
+  });
+  return res.json().catch(()=>null);
+}
+
+
+/** 
+ * 預留接口：上傳答案表到試算表的 answer_keys
+ * payload 建議格式：
+ * {
+ *   action: 'upload_answer_keys',
+ *   quiz_id, quiz_version,
+ *   answer_keys: [
+ *     { q_index, correct_index },                 // choice
+ *     { q_index, correct_indices: [..] }         // cloze
+ *   ]
+ * }
+ */
+export async function uploadAnswerKeys(payload){
+  const res = await fetch(WEBAPP_URL, {
+    method: 'POST',
+    headers: { 'Content-Type': 'text/plain' },
+    body: JSON.stringify({ action: 'upload_answer_keys', ...(payload||{}) })
+  });
+  return res.json().catch(()=>null);
+}
+
+/**
+ * 預留接口：上傳題庫中繼資料到試算表 quizzes
+ * payload 建議格式：
+ * { action: 'upload_quiz_meta', quiz_id, quiz_version, title, total_points, is_active, file, time_limit_minutes }
+ */
+export async function uploadQuizMeta(payload){
+  const res = await fetch(WEBAPP_URL, {
+    method: 'POST',
+    headers: { 'Content-Type': 'text/plain' },
+    body: JSON.stringify({ action: 'upload_quiz_meta', ...(payload||{}) })
+  });
+  return res.json().catch(()=>null);
+}
