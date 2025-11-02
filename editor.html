@@ -158,10 +158,46 @@
         <button id="copy" type="button" class="secondary">複製到剪貼簿</button>
         <button id="download" type="button">下載 JSON</button>
         <button id="clear-draft" type="button" class="danger">清空清單</button>
+        <button id="import-json" type="button" class="secondary">匯入 JSON</button>
+        <input id="import-file" type="file" accept="application/json" style="display:none" />
       </div>
       <textarea id="preview-box" class="muted" style="margin-top:10px; min-height:160px;" placeholder="點「預覽 JSON」顯示內容"></textarea>
       <p class="muted">提醒：輸出的 JSON 會是「題目物件的陣列」。放到你的題庫檔（或直接當整份題庫檔）即可。</p>
     </div>
+
+
+    <div class="hr"></div>
+
+    <h2 style="text-align:left;">直接上傳到 Google Sheets（Admin）</h2>
+    <div class="section">
+      <div class="grid-2">
+        <label for="upload-quiz-id">quiz_id</label>
+        <input id="upload-quiz-id" type="text" placeholder="例如：math_midterm_2025" />
+      </div>
+      <div class="grid-2">
+        <label for="upload-quiz-version">quiz_version</label>
+        <input id="upload-quiz-version" type="number" min="1" step="1" value="1" />
+      </div>
+      <div class="grid-2">
+        <label for="upload-title">title（可不填；預設沿用檔名）</label>
+        <input id="upload-title" type="text" placeholder="顯示名稱（例如：2025 期中考）" />
+      </div>
+      <div class="grid-2">
+        <label for="upload-tlm">time_limit_minutes（可不填）</label>
+        <input id="upload-tlm" type="number" min="0" step="1" placeholder="例如：45（分鐘）" />
+      </div>
+      <div class="grid-2">
+        <label>is_active</label>
+        <div><label><input id="upload-active" type="checkbox" checked /> 啟用</label></div>
+      </div>
+      <div class="row-wrap" style="margin-top:8px;">
+        <button id="btn-upload-all" type="button">上傳（Quiz Meta + Answer Keys）</button>
+        <button id="btn-upload-meta" type="button" class="secondary">僅上傳 Quiz Meta</button>
+        <button id="btn-upload-keys" type="button" class="secondary">僅上傳 Answer Keys</button>
+      </div>
+      <p id="upload-msg" class="muted" style="margin-top:8px;"></p>
+    </div>
+    
   </div>
 
 <!-- 題目預覽 Modal（沿用 help-modal 樣式） -->

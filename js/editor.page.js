@@ -2,6 +2,7 @@
 import { requireLogin, clearSession } from './state.js';
 import { BUILD_VERSION } from './config.js';
 import { renderAllMath } from './katex.js';
+import { upsertQuiz, upsertAnswerKeys } from './api.js';
 
 const $  = (s)=>document.querySelector(s);
 const $$ = (s)=>Array.from(document.querySelectorAll(s));
@@ -127,6 +128,39 @@ function boot(){
   $('#copy').addEventListener('click', copyPreview);
   $('#download').addEventListener('click', downloadJson);
   $('#clear-draft').addEventListener('click', clearDraft);
+
+  // === 上傳到 Sheets ===
+  $('#btn-upload-all')?.addEventListener('click', uploadAll);
+  $('#btn-upload-meta')?.addEventListener('click', uploadMeta);
+  $('#btn-upload-keys')?.addEventListener('click', uploadKeys);
+
+  // 匯入 JSON（從本機檔案）
+  document.getElementById('import-json')?.addEventListener('click', () =>
+    document.getElementById('import-file').click()
+  );
+  document.getElementById('import-file')?.addEventListener('change', async (e) => {
+    const f = e.target.files?.[0];
+    if (!f) return;
+    try {
+      const text = await f.text();
+      const parsed = JSON.parse(text);
+      // 支援純陣列或 { questions:[...] }
+      const arr = Array.isArray(parsed) ? parsed
+                : (Array.isArray(parsed?.questions) ? parsed.questions : null);
+      if (!arr) throw new Error('格式錯誤：需為題目物件的陣列，或 {questions:[...]}');
+
+      // 直接灌進 editor 的草稿清單
+      draft = arr;
+      clozeSets = [];
+      renderDraft();
+      updatePreview();
+      alert('匯入成功：' + arr.length + ' 題');
+    } catch (err) {
+      alert('匯入失敗：' + (err?.message || err));
+    } finally {
+      e.target.value = '';
+    }
+  });
 
   // 題目預覽（以 quiz 的錯題分析視覺呈現題幹 + 正解）
   const pqOpen  = document.getElementById('preview-questions');
@@ -427,4 +461,73 @@ function closePreviewModal(){
   if (!modal || !backdrop) return;
   modal.classList.remove('show');
   backdrop.classList.remove('show');
+}
+
+
+function byId(id){ return document.getElementById(id); }
+function text(el){ return (el?.value || '').trim(); }
+function num(el){ const n = Number((el?.value||'').trim()); return Number.isFinite(n) && n>=0 ? n : null; }
+
+function buildQuizMeta(){
+  const quiz_id = text(byId('upload-quiz-id'));
+  const quiz_version = Number(text(byId('upload-quiz-version')) || 1);
+  if (!quiz_id) throw new Error('請填 quiz_id');
+  const file = text(byId('file-name')) || 'questions/quiz.json';
+  const title = text(byId('upload-title')) || (file.split('/').pop() || quiz_id);
+  const total_points = draft.length || 0;
+  const time_limit_minutes = num(byId('upload-tlm'));
+  const is_active = !!byId('upload-active')?.checked;
+  return { quiz_id, quiz_version, title, total_points, is_active, file, time_limit_minutes };
+}
+
+function buildAnswerKeys(quiz_id, quiz_version){
+  const keys = draft.map((q, i)=>{
+    if ((q?.question_type||'').toLowerCase()==='choice'){
+      const idx = (q.options||[]).findIndex(o => o === q.answer);
+      return { q_index: i, correct_index: idx };
+    } else if ((q?.question_type||'').toLowerCase()==='cloze'){
+      const arr = Array.isArray(q.cloze_answer_indices) ? q.cloze_answer_indices : [];
+      return { q_index: i, correct_indices: arr };
+    }
+    return { q_index: i };
+  });
+  return { quiz_id, quiz_version, keys };
+}
+
+async function uploadMeta(){
+  const msg = byId('upload-msg'); msg.textContent = '';
+  try {
+    const meta = buildQuizMeta();
+    msg.textContent = '上傳 Quiz Meta 中…';
+    const res = await upsertQuiz(meta);
+    if (!res?.ok) throw new Error(res?.error || '伺服端回應失敗');
+    msg.textContent = '✅ Quiz Meta 已更新至試算表。';
+  } catch(e){ msg.textContent = '❌ '+ (e?.message||String(e)); }
+}
+
+async function uploadKeys(){
+  const msg = byId('upload-msg'); msg.textContent = '';
+  try {
+    const meta = buildQuizMeta();
+    const payload = buildAnswerKeys(meta.quiz_id, meta.quiz_version);
+    msg.textContent = '上傳 Answer Keys 中…';
+    const res = await upsertAnswerKeys(payload.quiz_id, payload.quiz_version, payload.keys);
+    if (!res?.ok) throw new Error(res?.error || '伺服端回應失敗');
+    msg.textContent = '✅ Answer Keys 已更新至試算表。';
+  } catch(e){ msg.textContent = '❌ '+ (e?.message||String(e)); }
+}
+
+async function uploadAll(){
+  const msg = byId('upload-msg'); msg.textContent = '';
+  try {
+    const meta = buildQuizMeta();
+    msg.textContent = '上傳 Quiz Meta 中…';
+    const r1 = await upsertQuiz(meta);
+    if (!r1?.ok) throw new Error(r1?.error || 'Quiz Meta 失敗');
+    msg.textContent = 'Quiz Meta 完成，準備上傳 Answer Keys…';
+    const payload = buildAnswerKeys(meta.quiz_id, meta.quiz_version);
+    const r2 = await upsertAnswerKeys(payload.quiz_id, payload.quiz_version, payload.keys);
+    if (!r2?.ok) throw new Error(r2?.error || 'Answer Keys 失敗');
+    msg.textContent = '✅ 全部完成：Quiz Meta + Answer Keys 已更新至試算表。';
+  } catch(e){ msg.textContent = '❌ '+ (e?.message||String(e)); }
 }

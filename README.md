@@ -27,4 +27,6 @@ The very first version of the system!
 - improved the UI.
 - bug fixed.
 ## v2.1.0
-- added a json generator
+- added a json generator.
+### v2.1.1
+- improved the json generator.
