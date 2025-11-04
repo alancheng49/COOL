@@ -195,7 +195,16 @@
         <button id="btn-upload-meta" type="button" class="secondary">僅上傳 Quiz Meta</button>
         <button id="btn-upload-keys" type="button" class="secondary">僅上傳 Answer Keys</button>
       </div>
-      <p id="upload-msg" class="muted" style="margin-top:8px;"></p>
+      <div class="muted" style="margin-top:6px;">（可選）同步到 GitHub：請在 GAS「專案屬性 → 指令碼屬性」設定 GH_TOKEN / GH_OWNER / GH_REPO / GH_BRANCH / GH_BASE_PATH。</div>
+<div class="grid-2">
+  <label>同步 GitHub</label>
+  <div><label><input id="gh-sync" type="checkbox" /> 上傳時也提交到 GitHub</label></div>
+</div>
+<div class="grid-2">
+  <label for="gh-message">Commit message（可選）</label>
+  <input id="gh-message" type="text" placeholder="e.g. update questions json" />
+</div>
+<p id="upload-msg" class="muted" style="margin-top:8px;"></p>
     </div>
     
   </div>

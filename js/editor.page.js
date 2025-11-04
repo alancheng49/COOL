@@ -2,7 +2,7 @@
 import { requireLogin, clearSession } from './state.js';
 import { BUILD_VERSION } from './config.js';
 import { renderAllMath } from './katex.js';
-import { upsertQuiz, upsertAnswerKeys } from './api.js';
+import { upsertQuiz, upsertAnswerKeys, syncQuestionsToGitHub } from './api.js';
 
 const $  = (s)=>document.querySelector(s);
 const $$ = (s)=>Array.from(document.querySelectorAll(s));
@@ -528,6 +528,20 @@ async function uploadAll(){
     const payload = buildAnswerKeys(meta.quiz_id, meta.quiz_version);
     const r2 = await upsertAnswerKeys(payload.quiz_id, payload.quiz_version, payload.keys);
     if (!r2?.ok) throw new Error(r2?.error || 'Answer Keys 失敗');
+    // 若勾選同步 GitHub，將目前草稿輸出為題庫 JSON 並提交
+    try {
+      const doSync = document.getElementById('gh-sync')?.checked;
+      if (doSync) {
+        const file = ensureJsonFilename(document.getElementById('file-name').value);
+        const content = JSON.stringify(getOutputArray(), null, 2);
+        const message = (document.getElementById('gh-message')?.value || '').trim() || ('Update ' + file + ' via editor');
+        msg.textContent = '試算表已完成，正在同步到 GitHub…';
+        const g = await syncQuestionsToGitHub(file, content, message);
+        if (!g?.ok) throw new Error(g?.error || 'GitHub 同步失敗');
+        msg.textContent = '✅ 全部完成：Sheets + GitHub 已更新。';
+        return; // 已有完成訊息
+      }
+    } catch(e){ msg.textContent = '⚠️ 試算表完成，但 GitHub 同步失敗：' + (e?.message||e); return; }
     msg.textContent = '✅ 全部完成：Quiz Meta + Answer Keys 已更新至試算表。';
   } catch(e){ msg.textContent = '❌ '+ (e?.message||String(e)); }
 }

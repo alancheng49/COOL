@@ -95,3 +95,20 @@ export async function uploadQuizMeta(payload){
   });
   return res.json().catch(()=>null);
 }
+
+
+/**
+ * 同步題庫 JSON 到 GitHub（交給 GAS 端與 GitHub API 溝通）
+ * @param {string} file_path - 例如 "questions/new-quiz.json"
+ * @param {string} content   - 檔案文字內容（未 base64，GAS 會處理）
+ * @param {string} message   - commit message（可留空）
+ */
+export async function syncQuestionsToGitHub(file_path, content, message){
+  const payload = { action: 'github_upsert_questions', file_path, content, message };
+  const res = await fetch(WEBAPP_URL, {
+    method: 'POST',
+    headers: { 'Content-Type': 'text/plain' },
+    body: JSON.stringify(payload)
+  });
+  return res.json().catch(()=>null);
+}
