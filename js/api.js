@@ -108,3 +108,15 @@ export async function listQuizzes(){
   const res = await fetch(url.toString(), { method: 'GET', cache: 'no-store' });
   return res.json().catch(()=>null);
 }
+
+
+export async function syncQuestionsToGitHub(file, content, message) {
+  // 後端 GAS 已提供 action: 'github_upsert_questions'
+  const payload = { action: 'github_upsert_questions', file, content, message };
+  const res = await fetch(WEBAPP_URL, {
+    method: 'POST',
+    headers: { 'Content-Type': 'text/plain' },
+    body: JSON.stringify(payload)
+  });
+  return res.json().catch(() => null);
+}
