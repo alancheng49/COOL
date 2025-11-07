@@ -194,6 +194,15 @@ function syncFormVisibility(){
   $('#cloze-fields').classList.toggle('hidden', !isCloze);
   // question_image 僅在 display=text 顯示
   $('#row-qimg').classList.toggle('hidden', disp !== 'text');
+  // 若切到 cloze 且 cloze_template 目前是空白，就預填 $\text{Ans}=$
+  if (isCloze) {
+    const tmpl = document.getElementById('tmpl');
+    if (tmpl && !tmpl.value.trim()) {
+      tmpl.value = '$\text{Ans}=$';
+      // 若後面有綁 input 監聽（像即時預覽），順便觸發一下
+      tmpl.dispatchEvent(new Event('input', { bubbles: true }));
+    }
+  }
 }
 
 // ====== Internal draft storage ======
