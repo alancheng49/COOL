@@ -198,7 +198,7 @@ function syncFormVisibility(){
   if (isCloze) {
     const tmpl = document.getElementById('tmpl');
     if (tmpl && !tmpl.value.trim()) {
-      tmpl.value = '$\text{Ans}=$';
+      tmpl.value = '$\\text{Ans}=$';
       // 若後面有綁 input 監聽（像即時預覽），順便觸發一下
       tmpl.dispatchEvent(new Event('input', { bubbles: true }));
     }
