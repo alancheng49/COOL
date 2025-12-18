@@ -14,23 +14,9 @@
   {
     "question_type": "cloze",
     "display_type": "text",
-    "question_content": "若$f(x)=-2x^3+2x^3+x^2-3=a(x-2)^3+b(x-2)^2+c(x-2)+d$，則數組$(a,b)$為何？",
-    "cloze_template": "$\\text{Ans}=((1)(2),(3)(4)(5))$",
+    "question_content": "若$f(x)=-2x^3+2x^3+x^2-3=a(x-2)^3+b(x-2)^2+c(x-2)+d$，則$a+b+c+d$為何？",
+    "cloze_template": "$\\text{Ans}=(1)(2)(3)$",
     "cloze_options": [
-      [
-        "0",
-        "1",
-        "2",
-        "3",
-        "4",
-        "5",
-        "6",
-        "7",
-        "8",
-        "9",
-        "$-$",
-        "$\\pm$"
-      ],
       [
         "0",
         "1",
@@ -90,10 +76,208 @@
     ],
     "cloze_answer_indices": [
       10,
-      2,
+      3,
+      6
+    ]
+  },
+  {
+    "question_type": "cloze",
+    "display_type": "text",
+    "question_content": "求$12^7-11\\cdot12^6-11\\cdot12^5-13\\cdot12^4+15\\cdot12^3-34\\cdot12^2-25\\cdot12+13=$？",
+    "cloze_template": "$\\text{Ans}=(1)$",
+    "cloze_options": [
+      [
+        "0",
+        "1",
+        "2",
+        "3",
+        "4",
+        "5",
+        "6",
+        "7",
+        "8",
+        "9",
+        "$-$",
+        "$\\pm$"
+      ]
+    ],
+    "cloze_answer_indices": [
+      1
+    ]
+  },
+  {
+    "question_type": "cloze",
+    "display_type": "text",
+    "question_content": "若$f(x)$有因式$2x+1$，則可知$f(a)=0$，問$a=$？",
+    "cloze_template": "$\\text{Ans}=(1)\\dfrac{(2)}{(3)}$",
+    "cloze_options": [
+      [
+        "0",
+        "1",
+        "2",
+        "3",
+        "4",
+        "5",
+        "6",
+        "7",
+        "8",
+        "9",
+        "$-$",
+        "$\\pm$"
+      ],
+      [
+        "0",
+        "1",
+        "2",
+        "3",
+        "4",
+        "5",
+        "6",
+        "7",
+        "8",
+        "9",
+        "$-$",
+        "$\\pm$"
+      ],
+      [
+        "0",
+        "1",
+        "2",
+        "3",
+        "4",
+        "5",
+        "6",
+        "7",
+        "8",
+        "9",
+        "$-$",
+        "$\\pm$"
+      ]
+    ],
+    "cloze_answer_indices": [
       10,
       1,
-      0
+      2
+    ]
+  },
+  {
+    "question_type": "cloze",
+    "display_type": "text",
+    "question_content": "承上題，因此若$f(x)=ax^10+8x^3-12x^2+4x+5$有因式$2x+1$，則$a=$？",
+    "cloze_template": "$\\text{Ans}=$",
+    "cloze_options": [
+      [
+        "0",
+        "1",
+        "2",
+        "3",
+        "4",
+        "5",
+        "6",
+        "7",
+        "8",
+        "9",
+        "$-$",
+        "$\\pm$"
+      ],
+      [
+        "0",
+        "1",
+        "2",
+        "3",
+        "4",
+        "5",
+        "6",
+        "7",
+        "8",
+        "9",
+        "$-$",
+        "$\\pm$"
+      ],
+      [
+        "0",
+        "1",
+        "2",
+        "3",
+        "4",
+        "5",
+        "6",
+        "7",
+        "8",
+        "9",
+        "$-$",
+        "$\\pm$"
+      ],
+      [
+        "0",
+        "1",
+        "2",
+        "3",
+        "4",
+        "5",
+        "6",
+        "7",
+        "8",
+        "9",
+        "$-$",
+        "$\\pm$"
+      ]
+    ],
+    "cloze_answer_indices": [
+      1,
+      0,
+      2,
+      4
+    ]
+  },
+  {
+    "question_type": "cloze",
+    "display_type": "text",
+    "question_content": "看到$f(x)$除以$x-3$的餘式為$7$，就要立刻想到$f(a)=7$，則$a=$？",
+    "cloze_template": "$\\text{Ans}=(1)$",
+    "cloze_options": [
+      [
+        "0",
+        "1",
+        "2",
+        "3",
+        "4",
+        "5",
+        "6",
+        "7",
+        "8",
+        "9",
+        "$-$",
+        "$\\pm$"
+      ]
+    ],
+    "cloze_answer_indices": [
+      3
+    ]
+  },
+  {
+    "question_type": "cloze",
+    "display_type": "text",
+    "question_content": "已知$f(x)$為多項式，且除以$x-1$餘式為$2$，除以$x+3$餘式為$-2$，則$(x-1)(x+3)$除$f(x)$的餘式為何？",
+    "cloze_template": "$\\text{Ans}=x+(2)$",
+    "cloze_options": [
+      [
+        "0",
+        "1",
+        "2",
+        "3",
+        "4",
+        "5",
+        "6",
+        "7",
+        "8",
+        "9",
+        "$-$",
+        "$\\pm$"
+      ]
+    ],
+    "cloze_answer_indices": [
+      1
     ]
   }
 ]
