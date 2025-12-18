@@ -163,8 +163,8 @@
   {
     "question_type": "cloze",
     "display_type": "text",
-    "question_content": "承上題，因此若$f(x)=ax^10+8x^3-12x^2+4x+5$有因式$2x+1$，則$a=$？",
-    "cloze_template": "$\\text{Ans}=$",
+    "question_content": "承上題，因此若$f(x)=ax^{10}+8x^3-12x^2+4x+5$有因式$2x+1$，則$a=$？",
+    "cloze_template": "$\\text{Ans}=(1)(2)(3)(4)$",
     "cloze_options": [
       [
         "0",
