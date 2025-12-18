@@ -2,7 +2,7 @@
   {
     "question_type": "choice",
     "display_type": "text",
-    "question_content": "求$f(x)=20x^13-18x^5+2$除以$x-1$的餘式為下列何者？",
+    "question_content": "求$f(x)=20x^{13}-18x^5+2$除以$x-1$的餘式為下列何者？",
     "options": [
       "4",
       "5",
