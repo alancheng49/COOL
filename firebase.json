@@ -1,0 +1,21 @@
+{
+  "hosting": {
+    "public": "web/dist",
+    "ignore": ["**/.*", "**/node_modules/**"],
+    "rewrites": [
+      { "source": "/api", "function": "api" },
+      { "source": "/api/**", "function": "api" },
+      { "source": "/questions/*.json", "function": "api" },
+      { "source": "/questions/images/**", "function": "api" },
+      { "source": "**", "destination": "/index.html" }
+    ]
+  },
+  "functions": {
+    "source": "functions",
+    "runtime": "nodejs22"
+  },
+  "firestore": {
+    "rules": "firestore.rules",
+    "indexes": "firestore.indexes.json"
+  }
+}

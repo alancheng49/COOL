@@ -1,0 +1,10 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // 所有資料都只透過 Cloud Functions (Admin SDK) 存取,
+    // 前端不直接讀寫 Firestore。
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}

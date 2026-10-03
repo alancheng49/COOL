@@ -1,0 +1,21 @@
+.DS_Store
+node_modules/
+functions/serviceAccount*.json
+web/dist/
+*.log
+.firebase/
+/legacy/
+
+# Local credentials and generated files
+.env
+.env.*
+!.env.example
+serviceAccount*.json
+*.tsbuildinfo
+coverage/
+playwright-report/
+test-results/
+
+# Material outside the quiz application
+/distillation-guide/
+/generated-assets/

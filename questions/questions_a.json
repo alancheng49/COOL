@@ -1,0 +1,27 @@
+[
+  {
+    "question_type": "choice",
+    "display_type": "text",
+    "question_content": "質能互換公式是？",
+    "question_image": "可選：若同時要顯示圖片，留這個欄位",
+    "options": ["$E=mc$", "$E=mc^3$", "$E=mc^2$", "$E=m^2c$"],
+    "answer": "$E=mc^2$"
+  },
+  {
+    "question_type": "cloze",
+    "display_type": "text",
+    "cloze_template": "$x^2-3=0$，求$x=(1)\\sqrt{(2)}$",
+    "cloze_options": [
+      ["0","1","2","3","4","5","6","7","8","9","-","$\\pm$"],
+      ["0","1","2","3","4","5","6","7","8","9","-","$\\pm$"]
+    ],
+    "cloze_answer_indices": [11,3]
+  },
+  {
+    "question_type": "choice",
+    "display_type": "image",
+    "question_content": "questions/images/questions_a/IMG_0426.JPG",
+    "options": ["$\\frac{1}{6}$","$\\frac{5}{6}$","1","0"],
+    "answer": "$\\frac{5}{6}$"
+  }
+]

@@ -1,0 +1,166 @@
+[
+  {
+    "question_type": "choice",
+    "display_type": "text",
+    "question_content": "已知函數$y=f(x)=ax^2+bx+c$為一開口向下之圖形，選出正確的選項",
+    "options": [
+      "$a>0$",
+      "$a<0$",
+      "$c=0$",
+      "$b^2-4ac=0$"
+    ],
+    "answer": "$a<0$"
+  },
+  {
+    "question_type": "cloze",
+    "display_type": "text",
+    "question_content": "$y=3(x+5)^2-4$是如何從$y=3x^2$平移得到的呢？",
+    "cloze_template": "答：(1)移5單位，(2)移4單位",
+    "cloze_options": [
+      [
+        "左",
+        "右"
+      ],
+      [
+        "上",
+        "下"
+      ]
+    ],
+    "cloze_answer_indices": [
+      0,
+      1
+    ]
+  },
+  {
+    "question_type": "cloze",
+    "display_type": "text",
+    "question_content": "若$y=3x^2$的圖形頂點為$(a,b)$，$y=3(x+5)^2-4$的圖形頂點為$(c,d)$，則$a+b+c+d=$？",
+    "cloze_template": "$\\text{Ans}=(1)(2)$",
+    "cloze_options": [
+      [
+        "0",
+        "1",
+        "2",
+        "3",
+        "4",
+        "5",
+        "6",
+        "7",
+        "8",
+        "9",
+        "$-$",
+        "$\\pm$"
+      ],
+      [
+        "0",
+        "1",
+        "2",
+        "3",
+        "4",
+        "5",
+        "6",
+        "7",
+        "8",
+        "9",
+        "$-$",
+        "$\\pm$"
+      ]
+    ],
+    "cloze_answer_indices": [
+      10,
+      9
+    ]
+  },
+  {
+    "question_type": "choice",
+    "display_type": "text",
+    "question_content": "右圖中有三個二次函數的圖形：$y=ax^2$、$y=bx^2$、$y=cx^2$，比較$a,b,c$三者大小順序，下列何者正確？",
+    "options": [
+      "$a>b>c$",
+      "$c>b>a$",
+      "$b>c>a$",
+      "無法判斷"
+    ],
+    "answer": "$a>b>c$",
+    "question_image": "questions/images/quadratic_func/img1.png"
+  },
+  {
+    "question_type": "cloze",
+    "display_type": "text",
+    "question_content": "右圖中三圖形為$y=ax^2$、$y=bx^2$、$y=cx^2$，比較$a,b,c$三者大小關係",
+    "cloze_template": "$\\text{Ans}=(1)>(2)>(3)$",
+    "cloze_options": [
+      [
+        "a",
+        "b",
+        "c"
+      ],
+      [
+        "a",
+        "b",
+        "c"
+      ],
+      [
+        "a",
+        "b",
+        "c"
+      ]
+    ],
+    "cloze_answer_indices": [
+      0,
+      2,
+      1
+    ],
+    "question_image": "questions/images/quadratic_func/img2.png"
+  },
+  {
+    "question_type": "choice",
+    "display_type": "text",
+    "question_content": "函數$y=f(x)=3x^2-6x+10$有的最值為以下何者？",
+    "options": [
+      "最大值",
+      "最小值"
+    ],
+    "answer": "最小值"
+  },
+  {
+    "question_type": "cloze",
+    "display_type": "text",
+    "question_content": "承上題，$y=f(x)=3x^2-6x+10$的頂點座標為何？",
+    "cloze_template": "$\\text{Ans}=((1),(2))$",
+    "cloze_options": [
+      [
+        "0",
+        "1",
+        "2",
+        "3",
+        "4",
+        "5",
+        "6",
+        "7",
+        "8",
+        "9",
+        "$-$",
+        "$\\pm$"
+      ],
+      [
+        "0",
+        "1",
+        "2",
+        "3",
+        "4",
+        "5",
+        "6",
+        "7",
+        "8",
+        "9",
+        "$-$",
+        "$\\pm$"
+      ]
+    ],
+    "cloze_answer_indices": [
+      1,
+      7
+    ]
+  }
+]

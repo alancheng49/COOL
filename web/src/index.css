@@ -1,0 +1,160 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    /* Ocean Depths:深藍 #1a2332 / teal #2d8b8b / seafoam #a8dadc / cream #f1faee */
+    --background: 105 39% 96%;
+    --foreground: 217 32% 15%;
+    --card: 0 0% 100%;
+    --card-foreground: 217 32% 15%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 217 32% 15%;
+    --primary: 180 51% 36%;
+    --primary-foreground: 105 39% 97%;
+    --secondary: 182 42% 90%;
+    --secondary-foreground: 217 32% 18%;
+    --muted: 182 30% 91%;
+    --muted-foreground: 215 14% 40%;
+    --accent: 180 51% 30%;
+    --accent-foreground: 0 0% 100%;
+    --destructive: 0 74% 46%;
+    --destructive-foreground: 0 0% 98%;
+    --border: 183 24% 82%;
+    --input: 183 24% 78%;
+    --ring: 180 51% 36%;
+    --radius: 0.45rem;
+  }
+
+  .dark {
+    /* Ocean Depths(深色):延續深海藍 + teal,背景取海溝深藍而非純黑 */
+    --background: 218 30% 10%;
+    --foreground: 187 30% 88%;
+    --card: 218 28% 14%;
+    --card-foreground: 187 30% 90%;
+    --popover: 218 28% 13%;
+    --popover-foreground: 187 30% 90%;
+    --primary: 180 48% 44%;
+    --primary-foreground: 218 30% 8%;
+    --secondary: 218 22% 21%;
+    --secondary-foreground: 185 30% 84%;
+    --muted: 218 22% 18%;
+    --muted-foreground: 202 14% 62%;
+    --accent: 180 48% 36%;
+    --accent-foreground: 0 0% 100%;
+    --destructive: 0 66% 56%;
+    --destructive-foreground: 0 0% 98%;
+    --border: 218 18% 26%;
+    --input: 218 18% 31%;
+    --ring: 180 48% 44%;
+  }
+
+  /* KaTeX 與圖片在深色下的可讀性 */
+  .dark .katex { color: hsl(187 30% 90%); }
+  .dark img { filter: brightness(0.92); }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+  body {
+    @apply bg-background text-foreground;
+  }
+}
+
+body {
+  font-family: "Noto Sans TC", "PingFang TC", "Microsoft JhengHei", system-ui, -apple-system, sans-serif;
+}
+.font-serif {
+  font-family: "Noto Serif TC", "Songti TC", Georgia, serif;
+}
+.katex { font-size: 1.05em; }
+.math-content {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+.math-content img { max-width: 100%; height: auto; }
+
+/* Atomic inline boxes reserve the full height of fractions, radicals and matrices.
+   Scroll only the formula when it is wider than its containing text column. */
+.inline-math-spacing {
+  display: inline-block;
+  max-width: calc(100% - 0.28em);
+  margin-inline: 0.14em;
+  padding-block: 0.3em;
+  overflow-x: auto;
+  vertical-align: middle;
+  line-height: normal;
+}
+.display-math-scroll {
+  display: block;
+  max-width: 100%;
+  margin-block: 0.65em;
+  padding-block: 0.3em;
+  overflow-x: auto;
+}
+.display-math-scroll > .katex-display { margin: 0; }
+.display-math-scroll > .katex-display > .katex {
+  width: max-content;
+  min-width: 100%;
+  text-align: center;
+}
+.inline-math-spacing, .display-math-scroll {
+  position: relative;
+  white-space: nowrap;
+  overscroll-behavior-x: contain;
+  scrollbar-width: thin;
+}
+
+@media (max-width: 767px) {
+  /* Keep native controls inside narrow layouts; 16px avoids iOS focus zoom. */
+  input:not([type="checkbox"]):not([type="radio"]), textarea, select {
+    min-width: 0;
+    max-width: 100%;
+    font-size: 16px;
+  }
+}
+
+/* 作答與檢討畫面中的填充空格；編輯器仍保留原始 (1)、(2)…格式。 */
+.cloze-blank-marker {
+  display: inline;
+  margin-inline: 0.08em;
+  padding: 0;
+  vertical-align: baseline;
+  border: 0;
+  background: transparent;
+  color: hsl(var(--primary));
+  font-family: "Noto Sans Symbols 2", "Noto Sans TC", "PingFang TC", sans-serif;
+  font-size: 1em;
+  font-weight: 600;
+  line-height: inherit;
+  letter-spacing: 0;
+  box-shadow: none;
+  white-space: nowrap;
+}
+
+.katex .cloze-blank-marker {
+  margin-inline: 0;
+  color: hsl(var(--primary));
+}
+
+.katex .cloze-blank-marker .fbox {
+  border-color: currentColor !important;
+  border-radius: 999px;
+  background: hsl(var(--primary) / 0.07);
+}
+
+.cloze-answer-label {
+  display: inline-flex;
+  min-width: 1.5rem;
+  align-items: center;
+  justify-content: center;
+  color: hsl(var(--primary));
+  font-family: "Noto Sans Symbols 2", "Noto Sans TC", "PingFang TC", sans-serif;
+  font-size: 1.2rem;
+  font-weight: 600;
+  line-height: 1;
+  letter-spacing: 0;
+}

@@ -1,0 +1,36 @@
+[
+  {
+    "question_type": "cloze",
+    "display_type": "text",
+    "question_content": "如圖，若$\\theta=45\\degree$，半徑為$1$，令扇形面積為$A$，扇形周長為$S$，求$A+S=?$",
+    "cloze_template": "$A+S=\\dfrac{(1)}{(2)}\\pi+(3)$",
+    "question_image": "questions/images/1010_circle/img1.jpg",
+    "cloze_options": [
+      ["0","1","2","3","4","5","6","7","8","9","-","$\\pm$"],
+      ["0","1","2","3","4","5","6","7","8","9","-","$\\pm$"],
+      ["0","1","2","3","4","5","6","7","8","9","-","$\\pm$"]
+    ],
+    "cloze_answer_indices": [3,8,2]
+  },
+  {
+    "question_type": "choice",
+    "display_type": "text",
+    "question_content": "平面上有一個以$O(1,2)$為圓心，半徑為$4$的圓，另有一點$A(2,3)$，請問$A$在圓內、上、外？",
+    "options": ["圓內","圓上","圓外"],
+    "answer": "圓內"
+  },
+  {
+    "question_type": "cloze",
+    "display_type": "text",
+    "question_content": "如圖，長方形$ABDC$中，$\\overline{AB}=3\\text{、}\\overline{AC}=6$，$E$為$\\overline{AC}$中點，以$A$點為圓心，$\\overline{AE}$為半徑畫圓，得到$\\overset{\\frown}{BE}$，令以$A$為圓心，$\\overline{AC}$為半徑畫弧，求塗色區域面積為何？",
+    "cloze_template": "Ans = $\\dfrac{(1)}{(2)}\\pi+(3)\\sqrt{(4)}$",
+    "question_image": "questions/images/1018_circle/img1.png",
+    "cloze_options": [
+      ["0","1","2","3","4","5","6","7","8","9","-","$\\pm$"],
+      ["0","1","2","3","4","5","6","7","8","9","-","$\\pm$"],
+      ["0","1","2","3","4","5","6","7","8","9","-","$\\pm$"],
+      ["0","1","2","3","4","5","6","7","8","9","-","$\\pm$"]
+    ],
+    "cloze_answer_indices": [4,3,4,3]
+  }
+]
