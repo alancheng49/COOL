@@ -3,19 +3,23 @@ import MathHtml from './MathHtml';
 import MarkdownMath from './MarkdownMath';
 import QuestionStem from './QuestionStem';
 import type { KeyInfo, Question, ServerAnswer, ServerPartAnswer, SubQuestion } from '@/lib/types';
-import { qaCreate } from '@/lib/api';
+import { qaCreate, type AiTutorMessage } from '@/lib/api';
+import AiTutorDialog from './AiTutorDialog';
 import QaComposer from './QaComposer';
+import { validPdfRegion } from '@/lib/pdf-region';
 import { cn } from '@/lib/utils';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
-import { BookOpen, CircleHelp, X } from 'lucide-react';
+import { BookOpen, CircleHelp, Sparkles, X } from 'lucide-react';
 
 interface Props {
   questions: Question[] | null; // 可能已被伺服器剝除 answer 欄位
   answers: ServerAnswer[];
   keys: KeyInfo[]; // 伺服器回傳的正解
   quizContext?: { quiz_id: string; quiz_version: number; quiz_title: string };
+  attemptId?: string; // 有值時顯示「問 AI」
+  pdfUrl?: string; // PDF 模式的題本,問 AI 時截取題目範圍
   renderManualGrade?: (target: ManualGradeTarget) => ReactNode;
 }
 
@@ -67,12 +71,29 @@ function multiEarned(k: KeyInfo, sel: number[]): number {
 }
 
 /** 每題作答檢討（交卷後 / 歷史詳情 / 管理端皆共用） */
-export default function ReviewList({ questions, answers, keys, quizContext, renderManualGrade }: Props) {
+export default function ReviewList({ questions, answers, keys, quizContext, attemptId, pdfUrl, renderManualGrade }: Props) {
   const sorted = [...keys].sort((a, b) => a.q_index - b.q_index);
   const [explainFor, setExplainFor] = useState<KeyInfo | null>(null);
   const [askFor, setAskFor] = useState<KeyInfo | null>(null);
+  const [aiFor, setAiFor] = useState<number | null>(null);
+  const [aiModel, setAiModel] = useState('auto');
+  const [aiThreads, setAiThreads] = useState<Record<string, AiTutorMessage[]>>({});
+  const aiThreadKey = `${attemptId}:${aiFor}`;
   return (
     <div className="space-y-4">
+      {aiFor != null && attemptId && (
+        <AiTutorDialog
+          attemptId={attemptId}
+          questionIndex={aiFor}
+          pdfUrl={pdfUrl}
+          pdfRegion={validPdfRegion(questions?.[aiFor]?.pdf_region)}
+          model={aiModel}
+          onModelChange={setAiModel}
+          messages={aiThreads[aiThreadKey] || []}
+          onMessagesChange={(messages) => setAiThreads((threads) => ({ ...threads, [aiThreadKey]: messages }))}
+          onClose={() => setAiFor(null)}
+        />
+      )}
       {explainFor && (
         <div
           className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 px-4"
@@ -170,20 +191,25 @@ export default function ReviewList({ questions, answers, keys, quizContext, rend
             )}
           >
             <div className="mb-2 flex items-start justify-between gap-2">
-              <span className="font-semibold">
+              <span className="shrink-0 font-semibold">
                 第 {k.q_index + 1} 題
                 {isMulti && <span className="ml-1.5 text-xs font-normal text-muted-foreground">（多選）</span>}
               </span>
-              <div className="flex shrink-0 flex-col items-end gap-1.5">
+              <div className="flex min-w-0 flex-wrap items-center justify-end gap-1.5">
                 <Badge
                   variant={correct ? 'default' : 'destructive'}
-                  className={correct ? 'bg-emerald-600 hover:bg-emerald-600' : partial ? 'bg-amber-500 hover:bg-amber-500' : ''}
+                  className={cn('order-last', correct ? 'bg-emerald-600 hover:bg-emerald-600' : partial ? 'bg-amber-500 hover:bg-amber-500' : '')}
                 >
                   {k.grading_status === 'pending' ? '待批改' : `${isMulti || isSubCloze || isShort || isGroup ? earned : correct ? k.points : 0} / ${k.points} 分`}
                 </Badge>
                 {k.explanation && (
                   <Button variant="outline" size="sm" className="h-7 px-2 text-xs" onClick={() => setExplainFor(k)}>
                     <BookOpen className="mr-1 h-3.5 w-3.5" />查看詳解
+                  </Button>
+                )}
+                {attemptId && (
+                  <Button variant="outline" size="sm" className="h-7 px-2 text-xs" onClick={() => setAiFor(k.q_index)}>
+                    <Sparkles className="mr-1 h-3.5 w-3.5" />問 AI
                   </Button>
                 )}
                 {quizContext && (

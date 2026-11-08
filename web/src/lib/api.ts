@@ -292,6 +292,39 @@ export function pingUnread() {
   window.dispatchEvent(new Event('hw:unread-refresh'));
 }
 
+// ===== AI 家教 =====
+export interface AiTutorMessage {
+  role: 'user' | 'model';
+  text: string;
+  model_label?: string; // AI 回覆時實際使用的模型
+  sent_at?: number; // 學生送出的時間，用來顯示已處理多久
+}
+
+export interface AiTutorPending {
+  status: 'running' | 'failed';
+  question: string;
+  created_at: string;
+  error?: string;
+}
+
+
+export interface AiTutorModel {
+  id: string;
+  label: string;
+  vision: boolean;
+  remaining: number;
+}
+
+export const aiTutorStatus = () => get({ action: 'ai_tutor_status' });
+export const aiTutorThread = (attempt_id: string, q_index: number) => get({ action: 'ai_tutor_thread', attempt_id, q_index });
+
+export const aiTutorAsk = (p: { attempt_id: string; q_index: number; question: string; pdf_crop?: string; model: string }) =>
+  post({ action: 'ai_tutor_ask', ...p });
+
+export const aiTutorCancel = (attempt_id: string, q_index: number) => post({ action: 'ai_tutor_cancel', attempt_id, q_index });
+
+export const adminResetAiUsage = (account: string) => post({ action: 'admin_reset_ai_usage', account });
+
 export const qaList = () => cached('qa:list', () => get({ action: 'qa_list' }), 60 * 1000);
 export const qaDetail = async (id: string) => {
   const r = await get({ action: 'qa_detail', id });

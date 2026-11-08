@@ -11,10 +11,13 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Checkbox } from '@/components/ui/checkbox';
-import { Trash2, ArrowUp, ArrowDown, Eye, FileUp, PanelRight, Sigma, Calculator, Save, Send } from 'lucide-react';
+import { Sheet, SheetContent, SheetTitle } from '@/components/ui/sheet';
+import { Trash2, ArrowUp, ArrowDown, Eye, FileUp, PanelRight, Sigma, Calculator, Save, Send, ListOrdered } from 'lucide-react';
 import MathInputDialog from '@/components/MathInputDialog';
+import PointsInput from '@/components/PointsInput';
+import QuestionOutline from '@/components/QuestionOutline';
 
-import { type EditQ, type EditPart, type EditSub, emptyChoice, emptyMulti, CLOZE_TOKENS, emptySub, emptyCloze, emptyShort, emptyPart, emptyGroup, normalizeDraftQuestion, splitPoints, setQuestionPoints, fromQuestion, toQuestion } from '@/lib/quiz-editor';
+import { type EditQ, type EditPart, type EditSub, type EditBlank, emptyChoice, emptyMulti, emptyBlank, isNumberBlank, blankProblem, emptySub, emptyCloze, emptyShort, emptyPart, emptyGroup, normalizeDraftQuestion, splitPoints, setQuestionPoints, scaleQuestionPoints, changeQuestionType, changePartType, questionTypeChangeDropsContent, partTypeChangeDropsContent, QUESTION_TYPES, QUESTION_TYPE_LABELS, fromQuestion, toQuestion } from '@/lib/quiz-editor';
 
 export default function AdminEditor({ routeKey }: { routeKey: string }) {
   // /admin/editor、/admin/editor/:quiz_id/:version 或 /admin/editor/draft/:draft_id
@@ -49,6 +52,9 @@ export default function AdminEditor({ routeKey }: { routeKey: string }) {
   const [qs, setQs] = useState<EditQ[]>([]);
   const [scoreHelperTotal, setScoreHelperTotal] = useState('100');
   const [scoreHelperMsg, setScoreHelperMsg] = useState('');
+  const [unifyType, setUnifyType] = useState<EditQ['question_type']>('choice');
+  const [unifyPoints, setUnifyPoints] = useState('');
+  const [outlineOpen, setOutlineOpen] = useState(false);
   const [msg, setMsg] = useState('');
   const [busyAction, setBusyAction] = useState<'draft' | 'publish' | ''>('');
   const [loading, setLoading] = useState(isEdit);
@@ -131,17 +137,31 @@ export default function AdminEditor({ routeKey }: { routeKey: string }) {
 
   const update = (i: number, patch: Partial<EditQ>) =>
     setQs((prev) => prev.map((q, k) => (k === i ? { ...q, ...patch } : q)));
-  const move = (i: number, dir: -1 | 1) => {
-    const j = i + dir;
-    if (j < 0 || j >= qs.length) return;
-    setPdfQuestion((selected) => selected === i ? j : selected === j ? i : selected);
+  const moveQuestion = (from: number, to: number) => {
+    if (from === to || to < 0 || to >= qs.length) return;
+    setPdfQuestion((selected) => {
+      if (selected === from) return to;
+      if (from < selected && selected <= to) return selected - 1;
+      if (to <= selected && selected < from) return selected + 1;
+      return selected;
+    });
     setQs((prev) => {
       const next = [...prev];
-      const j = i + dir;
-      if (j < 0 || j >= next.length) return prev;
-      [next[i], next[j]] = [next[j], next[i]];
+      const [question] = next.splice(from, 1);
+      next.splice(to, 0, question);
       return next;
     });
+  };
+  const changePoints = (i: number, points: number) =>
+    setQs((prev) => prev.map((q, k) => (k === i ? scaleQuestionPoints(q, points) : q)));
+  const changeType = (i: number, type: EditQ['question_type']) => {
+    if (questionTypeChangeDropsContent(qs[i], type) && !window.confirm('切換題型會清空此題已填的選項／小題內容，確定要切換嗎？')) return;
+    setQs((prev) => prev.map((q, k) => (k === i ? changeQuestionType(q, type) : q)));
+  };
+  const jumpToQuestion = (i: number) => {
+    setOutlineOpen(false);
+    setPdfQuestion(i);
+    document.getElementById(`question-${i}`)?.scrollIntoView({ behavior: 'instant', block: 'start' });
   };
 
   const distributeQuizPoints = () => {
@@ -161,6 +181,26 @@ export default function AdminEditor({ routeKey }: { routeKey: string }) {
     const points = splitPoints(total, qs.length);
     setQs((current) => current.map((question, index) => setQuestionPoints(question, points[index])));
     setScoreHelperMsg(`已將 ${total} 分平均分配給 ${qs.length} 題。`);
+  };
+
+  const typeStats = useMemo(() => QUESTION_TYPES.map((type) => {
+    const items = qs.filter((question) => question.question_type === type);
+    return { type, count: items.length, points: Math.round(items.reduce((sum, question) => sum + Number(question.points || 0), 0) * 100) / 100 };
+  }), [qs]);
+
+  const unifyTypeQuizPoints = () => {
+    const points = Math.round(Number(unifyPoints) * 100) / 100;
+    if (!Number.isFinite(points) || points <= 0) {
+      setScoreHelperMsg('請輸入大於 0 的每題配分。');
+      return;
+    }
+    const count = qs.filter((question) => question.question_type === unifyType).length;
+    if (!count) {
+      setScoreHelperMsg(`目前沒有${QUESTION_TYPE_LABELS[unifyType]}題。`);
+      return;
+    }
+    setQs((current) => current.map((question) => question.question_type === unifyType ? scaleQuestionPoints(question, points) : question));
+    setScoreHelperMsg(`已將 ${count} 題${QUESTION_TYPE_LABELS[unifyType]}統一為每題 ${points} 分。`);
   };
 
   const problems = useMemo(() => {
@@ -194,6 +234,10 @@ export default function AdminEditor({ routeKey }: { routeKey: string }) {
           if ((part.question_type === 'choice' || part.question_type === 'multi') && part.options.filter((option, index) => option.trim() || part.option_images[index]).length < 2) errs.push(`第 ${i + 1} 題（${partIndex + 1}）選項不足`);
           if (part.question_type === 'multi' && !part.correct_multi.length) errs.push(`第 ${i + 1} 題（${partIndex + 1}）至少要勾一個正解`);
           if (part.question_type === 'cloze' && !part.blanks.length) errs.push(`第 ${i + 1} 題（${partIndex + 1}）沒有填充格`);
+          if (part.question_type === 'cloze') part.blanks.forEach((blank, blankIndex) => {
+            const problem = blankProblem(blank);
+            if (problem) errs.push(`第 ${i + 1} 題（${partIndex + 1}）第 ${blankIndex + 1} 格${problem}`);
+          });
         });
         const partTotal = q.group_parts.reduce((sum, part) => sum + (Number(part.points) || 0), 0);
         if (Math.abs(partTotal - (Number(q.points) || 0)) > 1e-9) errs.push(`第 ${i + 1} 題小題配分加總（${partTotal}）不等於題組配分（${q.points}）`);
@@ -201,18 +245,16 @@ export default function AdminEditor({ routeKey }: { routeKey: string }) {
         const sub = q.subs[0];
         if (!sub || !sub.blanks.length) errs.push(`第 ${i + 1} 題沒有任何填充格`);
         (sub?.blanks || []).forEach((b, bi) => {
-          const tokens = b.tokens.split('|').filter((t) => t.trim() !== '');
-          if (tokens.length < 2) errs.push(`第 ${i + 1} 題第 ${bi + 1} 格選項不足`);
-          if (b.correct >= tokens.length) errs.push(`第 ${i + 1} 題第 ${bi + 1} 格正解超出範圍`);
+          const problem = blankProblem(b);
+          if (problem) errs.push(`第 ${i + 1} 題第 ${bi + 1} 格${problem}`);
         });
       } else {
         if (!q.subs.length) errs.push(`第 ${i + 1} 題沒有任何小題`);
         q.subs.forEach((sub, si) => {
           if (!sub.blanks.length) errs.push(`第 ${i + 1} 題（${si + 1}）沒有任何填充格`);
           sub.blanks.forEach((b, bi) => {
-            const tokens = b.tokens.split('|').filter((t) => t.trim() !== '');
-            if (tokens.length < 2) errs.push(`第 ${i + 1} 題（${si + 1}）第 ${bi + 1} 格選項不足`);
-            if (b.correct >= tokens.length) errs.push(`第 ${i + 1} 題（${si + 1}）第 ${bi + 1} 格正解超出範圍`);
+            const problem = blankProblem(b);
+            if (problem) errs.push(`第 ${i + 1} 題（${si + 1}）第 ${bi + 1} 格${problem}`);
           });
         });
         const subTotal = q.subs.reduce((sum, sub) => sum + (Number(sub.points) || 0), 0);
@@ -395,9 +437,13 @@ export default function AdminEditor({ routeKey }: { routeKey: string }) {
   const pdfPanel = pdfMode && pdfUrl && showPdf;
   const editing = isEdit || !!draftId;
   const busy = !!busyAction;
+  const outline = (className: string) => (
+    <QuestionOutline className={className} questions={qs} onMove={moveQuestion} onPointsChange={changePoints} onJump={jumpToQuestion} />
+  );
 
   return (
-    <div className={pdfPanel ? 'mx-auto grid max-w-[1700px] items-start gap-5 xl:grid-cols-[minmax(0,1fr)_minmax(0,42%)]' : 'mx-auto max-w-3xl'}>
+    <div className={pdfPanel ? 'mx-auto grid max-w-[1700px] items-start gap-5 xl:grid-cols-[minmax(0,1fr)_minmax(0,42%)]' : 'mx-auto max-w-3xl xl:grid xl:max-w-6xl xl:grid-cols-[17rem_minmax(0,1fr)] xl:items-start xl:gap-5'}>
+    {!pdfPanel && <aside className="hidden rounded-md border bg-card p-3 xl:sticky xl:top-20 xl:block">{outline('max-h-[calc(100vh-7rem)]')}</aside>}
     <div className="min-w-0">
       <div className="mb-5 flex flex-wrap items-center justify-between gap-3">
         <div className="min-w-0 flex-1">
@@ -531,7 +577,10 @@ export default function AdminEditor({ routeKey }: { routeKey: string }) {
         <div className="flex flex-wrap items-end justify-between gap-3">
           <div>
             <div className="flex items-center gap-2 font-medium"><Calculator className="h-4 w-4 text-primary" />配分小幫手</div>
-            <p className="mt-1 text-xs text-muted-foreground">目前配分合計 {Math.round(qs.reduce((sum, question) => sum + Number(question.points || 0), 0) * 100) / 100} 分</p>
+            <p className="mt-1 text-xs text-muted-foreground">
+              目前配分合計 {Math.round(qs.reduce((sum, question) => sum + Number(question.points || 0), 0) * 100) / 100} 分
+              {typeStats.filter((stat) => stat.count).map((stat) => ` · ${QUESTION_TYPE_LABELS[stat.type]} ${stat.count} 題 ${stat.points} 分`).join('')}
+            </p>
           </div>
           <div className="flex flex-wrap items-end gap-2">
             <div className="space-y-1">
@@ -541,25 +590,41 @@ export default function AdminEditor({ routeKey }: { routeKey: string }) {
             <Button type="button" variant="outline" onClick={distributeQuizPoints} disabled={!qs.length}>平分配分</Button>
           </div>
         </div>
+        <div className="mt-3 flex flex-wrap items-end justify-end gap-2 border-t border-primary/15 pt-3">
+          <div className="space-y-1">
+            <Label htmlFor="score-unify-type">統一題型配分</Label>
+            <select id="score-unify-type" className="flex h-10 rounded-md border border-input bg-background px-3 py-2 text-sm" value={unifyType} onChange={(event) => { setUnifyType(event.target.value as EditQ['question_type']); setScoreHelperMsg(''); }}>
+              {typeStats.map((stat) => <option key={stat.type} value={stat.type}>{QUESTION_TYPE_LABELS[stat.type]}（{stat.count} 題）</option>)}
+            </select>
+          </div>
+          <div className="space-y-1">
+            <Label htmlFor="score-unify-points">每題配分</Label>
+            <Input id="score-unify-points" type="number" min="0.01" step="0.01" className="w-28" value={unifyPoints} onChange={(event) => { setUnifyPoints(event.target.value); setScoreHelperMsg(''); }} />
+          </div>
+          <Button type="button" variant="outline" onClick={unifyTypeQuizPoints} disabled={!qs.length}>套用</Button>
+        </div>
         {scoreHelperMsg && <p className={`mt-2 text-xs ${scoreHelperMsg.startsWith('已') ? 'text-emerald-700 dark:text-emerald-400' : 'text-destructive'}`}>{scoreHelperMsg}</p>}
       </div>
 
       {/* 題目列表 */}
       <div className="space-y-4">
         {qs.map((q, i) => (
-          <Card key={i}>
+          <Card key={i} id={`question-${i}`} className="scroll-mt-20">
             <CardContent className="space-y-3 px-3 py-4 sm:px-6">
               <div className="flex flex-wrap items-center justify-between gap-2">
-                <span className="font-serif font-bold text-primary">
-                  第 {i + 1} 題（{({ choice: '單選', multi: '多選', cloze: '填充', short_answer: '簡答', group: '題組' } as const)[q.question_type]}）
-                </span>
+                <div className="flex items-center gap-2">
+                  <span className="font-serif font-bold text-primary">第 {i + 1} 題</span>
+                  <select aria-label={`第 ${i + 1} 題題型`} className="h-8 rounded-md border bg-card px-2 text-sm" value={q.question_type} onChange={(event) => changeType(i, event.target.value as EditQ['question_type'])}>
+                    {QUESTION_TYPES.map((type) => <option key={type} value={type}>{QUESTION_TYPE_LABELS[type]}</option>)}
+                  </select>
+                </div>
                 <div className="flex items-center gap-1">
                   <span className="mr-1 flex items-center gap-1 text-xs text-muted-foreground">
                     配分
-                    <Input className="h-7 w-14 text-center" value={String(q.points)} onChange={(e) => update(i, { points: Number(e.target.value) || 1 })} />
+                    <PointsInput className="h-7 w-14 text-center" label={`第 ${i + 1} 題配分`} value={q.points} onCommit={(points) => changePoints(i, points)} />
                   </span>
-                  <MiniBtn onClick={() => move(i, -1)}><ArrowUp className="h-4 w-4" /></MiniBtn>
-                  <MiniBtn onClick={() => move(i, 1)}><ArrowDown className="h-4 w-4" /></MiniBtn>
+                  <MiniBtn onClick={() => moveQuestion(i, i - 1)}><ArrowUp className="h-4 w-4" /></MiniBtn>
+                  <MiniBtn onClick={() => moveQuestion(i, i + 1)}><ArrowDown className="h-4 w-4" /></MiniBtn>
                   <MiniBtn danger onClick={() => { setQs((prev) => prev.filter((_, k) => k !== i)); setPdfQuestion((selected) => Math.max(0, selected >= i ? selected - 1 : selected)); }}><Trash2 className="h-4 w-4" /></MiniBtn>
                 </div>
               </div>
@@ -687,30 +752,9 @@ export default function AdminEditor({ routeKey }: { routeKey: string }) {
                             <Textarea rows={1} value={sub.template} onChange={(e) => setSub({ template: e.target.value })} />
                             {preview && sub.template && <MathHtml html={sub.template} className="rounded bg-secondary/50 px-3 py-2 text-sm" />}
                           </div>
-                          <Label>空格正解（每格點選一個）</Label>
-                          {sub.blanks.map((b, bi) => {
-                            const tokens = b.tokens.split('|').map((t) => t.trim()).filter((t) => t !== '');
-                            return (
-                              <div key={bi} className="flex items-center gap-2">
-                                <span className="w-8 shrink-0 text-sm font-semibold text-muted-foreground">({bi + 1})</span>
-                                <div className="flex min-w-0 flex-1 flex-wrap gap-1.5">
-                                  {tokens.map((t, ti) => (
-                                    <button
-                                      key={ti}
-                                      type="button"
-                                      title="設為此格正解"
-                                      onClick={() => setSub({ blanks: sub.blanks.map((x, y) => (y === bi ? { ...x, correct: ti } : x)) })}
-                                      className={`min-w-8 rounded border px-2 py-1 text-sm transition-colors ${b.correct === ti ? 'border-emerald-600 bg-emerald-600 text-white' : 'border-border bg-card text-muted-foreground hover:border-emerald-500 hover:text-foreground'}`}
-                                    >
-                                      <MathHtml html={t} />
-                                    </button>
-                                  ))}
-                                </div>
-                                <MiniBtn danger onClick={() => setSub({ blanks: sub.blanks.filter((_, y) => y !== bi) })}><Trash2 className="h-3.5 w-3.5" /></MiniBtn>
-                              </div>
-                            );
-                          })}
-                          <Button variant="outline" size="sm" onClick={() => setSub({ blanks: [...sub.blanks, { tokens: CLOZE_TOKENS, correct: 0 }] })}>
+                          <Label>空格選項與正解（每格點選一個正解）</Label>
+                          {sub.blanks.map((b, bi) => <BlankEditor key={bi} blank={b} index={bi} onChange={(blank) => setSub({ blanks: sub.blanks.map((x, y) => (y === bi ? blank : x)) })} onRemove={() => setSub({ blanks: sub.blanks.filter((_, y) => y !== bi) })} />)}
+                          <Button variant="outline" size="sm" onClick={() => setSub({ blanks: [...sub.blanks, emptyBlank()] })}>
                             + 空格
                           </Button>
                         </div>
@@ -749,30 +793,9 @@ export default function AdminEditor({ routeKey }: { routeKey: string }) {
                           <Textarea rows={1} className="bg-card" value={sub.template} onChange={(e) => setSub({ template: e.target.value })} />
                           {preview && sub.template && <MathHtml html={sub.template} className="rounded bg-card px-3 py-2 text-sm" />}
                         </div>
-                        <Label className="text-xs">空格正解（每格點選一個）</Label>
-                        {sub.blanks.map((b, bi) => {
-                          const tokens = b.tokens.split('|').map((t) => t.trim()).filter((t) => t !== '');
-                          return (
-                            <div key={bi} className="flex items-center gap-2">
-                              <span className="w-8 shrink-0 text-sm font-semibold text-muted-foreground">({bi + 1})</span>
-                              <div className="flex min-w-0 flex-1 flex-wrap gap-1.5">
-                                {tokens.map((t, ti) => (
-                                  <button
-                                    key={ti}
-                                    type="button"
-                                    title="設為此格正解"
-                                    onClick={() => setSub({ blanks: sub.blanks.map((x, y) => (y === bi ? { ...x, correct: ti } : x)) })}
-                                    className={`min-w-8 rounded border px-2 py-1 text-sm transition-colors ${b.correct === ti ? 'border-emerald-600 bg-emerald-600 text-white' : 'border-border bg-card text-muted-foreground hover:border-emerald-500 hover:text-foreground'}`}
-                                  >
-                                    <MathHtml html={t} />
-                                  </button>
-                                ))}
-                              </div>
-                              <MiniBtn danger onClick={() => setSub({ blanks: sub.blanks.filter((_, y) => y !== bi) })}><Trash2 className="h-3.5 w-3.5" /></MiniBtn>
-                            </div>
-                          );
-                        })}
-                        <Button variant="outline" size="sm" onClick={() => setSub({ blanks: [...sub.blanks, { tokens: CLOZE_TOKENS, correct: 0 }] })}>
+                        <Label className="text-xs">空格選項與正解（每格點選一個正解）</Label>
+                        {sub.blanks.map((b, bi) => <BlankEditor key={bi} blank={b} index={bi} onChange={(blank) => setSub({ blanks: sub.blanks.map((x, y) => (y === bi ? blank : x)) })} onRemove={() => setSub({ blanks: sub.blanks.filter((_, y) => y !== bi) })} />)}
+                        <Button variant="outline" size="sm" onClick={() => setSub({ blanks: [...sub.blanks, emptyBlank()] })}>
                           + 空格
                         </Button>
                       </div>
@@ -815,7 +838,12 @@ export default function AdminEditor({ routeKey }: { routeKey: string }) {
         {problems.length > 0 && <p className="mb-2 max-h-20 overflow-y-auto text-xs text-amber-700 dark:text-amber-300">尚有問題：{problems.join(';')}</p>}
         {msg && <p className={`mb-2 text-sm ${msg.startsWith('✅') ? 'text-emerald-700' : 'text-destructive'}`}>{msg}</p>}
         <div className="flex flex-wrap justify-between gap-2">
-          <Button variant="ghost" onClick={() => (location.hash = '/admin')}>回題目管理</Button>
+          <div className="flex flex-wrap gap-2">
+            <Button variant="ghost" onClick={() => (location.hash = '/admin')}>回題目管理</Button>
+            <Button variant="outline" className={pdfPanel ? '' : 'xl:hidden'} onClick={() => setOutlineOpen(true)}>
+              <ListOrdered className="mr-1.5 h-4 w-4" />題目清單
+            </Button>
+          </div>
           <div className="grid w-full grid-cols-2 gap-2 sm:flex sm:w-auto">
             <Button variant="outline" onClick={() => void saveDraftProgress()} disabled={busy}>
               <Save className="mr-1.5 h-4 w-4" />
@@ -846,6 +874,12 @@ export default function AdminEditor({ routeKey }: { routeKey: string }) {
           className="h-[55vh] xl:h-[calc(100vh-11rem)]" />
       </div>
     )}
+    <Sheet open={outlineOpen} onOpenChange={setOutlineOpen}>
+      <SheetContent side="right" aria-describedby={undefined} className="flex w-[min(24rem,92vw)] flex-col gap-3 pb-[max(1.5rem,env(safe-area-inset-bottom))]">
+        <SheetTitle className="sr-only">題目清單</SheetTitle>
+        {outline('min-h-0 flex-1')}
+      </SheetContent>
+    </Sheet>
     </div>
   );
 }
@@ -870,7 +904,11 @@ function GroupEditor({ value, totalPoints, onChange }: { value: EditPart[]; tota
         <div key={index} className="space-y-3 rounded-md border bg-secondary/20 p-3">
           <div className="flex flex-wrap items-center gap-2">
             <span className="font-serif text-sm font-bold text-primary">（{index + 1}）</span>
-            <select className="h-8 rounded-md border bg-card px-2 text-sm" value={part.question_type} onChange={(event) => setPart(index, emptyPart(event.target.value as EditPart['question_type']))}>
+            <select className="h-8 rounded-md border bg-card px-2 text-sm" value={part.question_type} onChange={(event) => {
+              const type = event.target.value as EditPart['question_type'];
+              if (partTypeChangeDropsContent(part, type) && !window.confirm('切換題型會清空此小題已填的選項內容，確定要切換嗎？')) return;
+              onChange(value.map((item, i) => i === index ? changePartType(item, type) : item));
+            }}>
               <option value="choice">單選題</option><option value="multi">多選題</option><option value="cloze">填充題</option><option value="short_answer">簡答題</option>
             </select>
             <span className="ml-auto flex items-center gap-1 text-xs text-muted-foreground">配分<Input className="h-8 w-16 bg-card text-center" value={String(part.points)} onChange={(event) => setPart(index, { points: Number(event.target.value) || 0 })} /></span>
@@ -896,38 +934,71 @@ function GroupEditor({ value, totalPoints, onChange }: { value: EditPart[]; tota
           {part.question_type === 'cloze' && (
             <div className="space-y-2">
               <div className="space-y-1"><Label className="text-xs">答案樣式（用 (1)、(2)… 表示空格）</Label><MathTextField rows={1} value={part.template} onChange={(template) => setPart(index, { template })} /></div>
-              <Label className="text-xs">空格正解（每格點選一個）</Label>
-              {part.blanks.map((blank, blankIndex) => {
-                const tokens = blank.tokens.split('|').map((token) => token.trim()).filter((token) => token !== '');
-                return (
-                  <div key={blankIndex} className="flex items-center gap-2">
-                    <span className="w-8 shrink-0 text-sm font-semibold text-muted-foreground">({blankIndex + 1})</span>
-                    <div className="flex min-w-0 flex-1 flex-wrap gap-1.5">
-                      {tokens.map((token, tokenIndex) => (
-                        <button
-                          key={tokenIndex}
-                          type="button"
-                          title="設為此格正解"
-                          onClick={() => setPart(index, {
-                            blanks: part.blanks.map((item, i) => i === blankIndex ? { ...item, correct: tokenIndex } : item),
-                          })}
-                          className={`min-w-8 rounded border px-2 py-1 text-sm transition-colors ${blank.correct === tokenIndex ? 'border-emerald-600 bg-emerald-600 text-white' : 'border-border bg-card text-muted-foreground hover:border-emerald-500 hover:text-foreground'}`}
-                        >
-                          <MathHtml html={token} />
-                        </button>
-                      ))}
-                    </div>
-                    <MiniBtn danger onClick={() => setPart(index, { blanks: part.blanks.filter((_, i) => i !== blankIndex) })}><Trash2 className="h-3.5 w-3.5" /></MiniBtn>
-                  </div>
-                );
-              })}
-              <Button size="sm" variant="outline" onClick={() => setPart(index, { blanks: [...part.blanks, { tokens: CLOZE_TOKENS, correct: 0 }] })}>+ 空格</Button>
+              <Label className="text-xs">空格選項與正解（每格點選一個正解）</Label>
+              {part.blanks.map((blank, blankIndex) => <BlankEditor key={blankIndex} blank={blank} index={blankIndex} onChange={(next) => setPart(index, { blanks: part.blanks.map((item, i) => i === blankIndex ? next : item) })} onRemove={() => setPart(index, { blanks: part.blanks.filter((_, i) => i !== blankIndex) })} />)}
+              <Button size="sm" variant="outline" onClick={() => setPart(index, { blanks: [...part.blanks, emptyBlank()] })}>+ 空格</Button>
             </div>
           )}
           {part.question_type === 'short_answer' && <p className="text-xs text-muted-foreground">學生可輸入文字、數學式或上傳圖片，需由老師人工批改。</p>}
         </div>
       ))}
       <Button size="sm" variant="outline" onClick={() => onChange([...value, emptyPart()])}>+ 小題</Button>
+    </div>
+  );
+}
+
+function BlankEditor({ blank, index, onChange, onRemove }: { blank: EditBlank; index: number; onChange: (blank: EditBlank) => void; onRemove: () => void }) {
+  const custom = !isNumberBlank(blank);
+  const switchMode = (mode: string) => {
+    if (mode === 'custom') {
+      onChange({ tokens: ['', ''], correct: 0 });
+    } else if (!blank.tokens.some((token) => token.trim() !== '') || window.confirm('切換為數字會清空此格的自訂選項，確定要切換嗎？')) {
+      onChange(emptyBlank());
+    }
+  };
+  return (
+    <div className="space-y-2">
+      <div className="flex flex-wrap items-center gap-2">
+        <span className="w-8 shrink-0 text-sm font-semibold text-muted-foreground">({index + 1})</span>
+        <select aria-label={`第 ${index + 1} 格選項類型`} className="h-8 shrink-0 rounded-md border bg-card px-2 text-sm" value={custom ? 'custom' : 'number'} onChange={(event) => switchMode(event.target.value)}>
+          <option value="number">數字</option>
+          <option value="custom">自訂選項</option>
+        </select>
+        <div className="flex min-w-0 flex-1 basis-40 flex-wrap gap-1.5">
+          {blank.tokens.map((token, tokenIndex) => (
+            <button
+              key={tokenIndex}
+              type="button"
+              title="設為此格正解"
+              onClick={() => onChange({ ...blank, correct: tokenIndex })}
+              className={`min-w-8 max-w-full rounded border px-2 py-1 text-sm transition-colors ${blank.correct === tokenIndex ? 'border-emerald-600 bg-emerald-600 text-white' : 'border-border bg-card text-muted-foreground hover:border-emerald-500 hover:text-foreground'}`}
+            >
+              {token.trim() ? <MathHtml html={token} /> : `選項 ${tokenIndex + 1}`}
+            </button>
+          ))}
+        </div>
+        <MiniBtn danger onClick={onRemove}><Trash2 className="h-3.5 w-3.5" /></MiniBtn>
+      </div>
+      {custom && (
+        <div className="space-y-2 pl-10">
+          <p className="text-xs text-muted-foreground">選項支援 LaTeX，數學式用 $...$ 包住；上方按鈕會顯示渲染結果，點選即設為正解。</p>
+          {blank.tokens.map((token, tokenIndex) => (
+            <div key={tokenIndex} className="grid grid-cols-[minmax(0,1fr)_auto] items-start gap-2">
+              <MathTextField rows={1} value={token} onChange={(value) => onChange({ ...blank, tokens: blank.tokens.map((item, i) => i === tokenIndex ? value : item) })} />
+              <MiniBtn
+                danger
+                onClick={() => onChange({
+                  tokens: blank.tokens.filter((_, i) => i !== tokenIndex),
+                  correct: blank.correct === tokenIndex ? 0 : blank.correct > tokenIndex ? blank.correct - 1 : blank.correct,
+                })}
+              >
+                <Trash2 className="h-3.5 w-3.5" />
+              </MiniBtn>
+            </div>
+          ))}
+          <Button type="button" variant="outline" size="sm" onClick={() => onChange({ ...blank, tokens: [...blank.tokens, ''] })}>+ 選項</Button>
+        </div>
+      )}
     </div>
   );
 }

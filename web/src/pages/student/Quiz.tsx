@@ -111,7 +111,7 @@ export default function QuizPage({ routeKey }: { routeKey: string }) {
   const [remainSec, setRemainSec] = useState<number | null>(null);
   const [saveState, setSaveState] = useState<'idle' | 'saving' | 'saved'>('idle');
   const [submitting, setSubmitting] = useState(false);
-  const [result, setResult] = useState<null | { score: number | null; max: number; keys: KeyInfo[]; answers: ServerAnswer[]; grading_status?: string; auto_submitted?: boolean }>(null);
+  const [result, setResult] = useState<null | { score: number | null; max: number; keys: KeyInfo[]; answers: ServerAnswer[]; grading_status?: string; auto_submitted?: boolean; attempt_id?: string }>(null);
   const [submitErr, setSubmitErr] = useState('');
   const [showHelp, setShowHelp] = useState(false);
   const [deadlineMs, setDeadlineMs] = useState<number | null>(null); // 絕對截止時刻
@@ -154,6 +154,7 @@ export default function QuizPage({ routeKey }: { routeKey: string }) {
             keys: startResponse.result.results || [],
             answers: startResponse.result.answers || [],
             grading_status: startResponse.result.grading_status,
+            attempt_id: startResponse.result.attempt_id,
             auto_submitted: true,
           });
         }
@@ -188,6 +189,7 @@ export default function QuizPage({ routeKey }: { routeKey: string }) {
           keys: draftRes.result.results || [],
           answers: draftRes.result.answers || [],
           grading_status: draftRes.result.grading_status,
+          attempt_id: draftRes.result.attempt_id,
           auto_submitted: true,
         });
         return;
@@ -335,7 +337,7 @@ export default function QuizPage({ routeKey }: { routeKey: string }) {
     setSubmitting(false);
 
     if (res?.ok) {
-      setResult({ score: res.score, max: res.max_score, keys: res.results || [], answers: serverAnswers, grading_status: res.grading_status });
+      setResult({ score: res.score, max: res.max_score, keys: res.results || [], answers: serverAnswers, grading_status: res.grading_status, attempt_id: res.attempt_id });
     } else {
       submittedRef.current = false;
       setSubmitErr(ERR_MSG[res?.error] || `交卷失敗：${res?.error || '連線錯誤'}，可再試一次。`);
@@ -392,7 +394,7 @@ export default function QuizPage({ routeKey }: { routeKey: string }) {
               </a>
             )}
           </div>
-          {!pending && <ReviewList questions={questions} answers={result.answers} keys={result.keys} quizContext={{ quiz_id: quizId, quiz_version: version, quiz_title: quizMeta?.name || quizId }} />}
+          {!pending && <ReviewList questions={questions} answers={result.answers} keys={result.keys} quizContext={{ quiz_id: quizId, quiz_version: version, quiz_title: quizMeta?.name || quizId }} attemptId={result.attempt_id} pdfUrl={pdfUrl} />}
           <div className="mt-6 flex justify-center gap-3">
             <Button variant="outline" onClick={() => (location.hash = '/history')}>查看作答紀錄</Button>
             <Button onClick={() => (location.hash = '/')}>回測驗列表</Button>

@@ -51,6 +51,7 @@ firebase deploy --only hosting
 - 建帳號(網頁):管理介面 → 帳號管理。(腳本備用:`cd functions && node scripts/create-user.js <帳號> <密碼> <名稱> <角色>`)
 - 匯入舊資料:見 `functions/scripts/import-sheets.js` / `import-questions.js` 開頭註解
 - 行為開關:`functions/index.js` 的 `CONFIG`(ENFORCE_ASSIGNMENTS、時限誤差、session 效期等),改完 `firebase deploy --only functions`
+- AI 家教(檢討頁「問 AI」):在 `functions/.env` 設定 `GEMINI_API_KEY`(選填 `ZAI_API_KEY`、`GROQ_API_KEY` 作為備援,`AI_TUTOR_DAILY_LIMIT` 預設每位學生每個模型每天 20 次);模型順序在 `functions/index.js` 的 `AI_TUTOR_MODELS`,學生可選自動或指定模型,自動模式額度用完會換下一個;管理員可在帳號管理重置學生當天額度;提問由 `runAiTutorJob`(Firestore 觸發,`ai_jobs`)在背景處理,最長 5 分鐘;對話存在 `ai_threads`,超過 30 天未更新由 `cleanupAiThreads` 每天清除,改完 `firebase deploy --only functions`。次數記錄在 Firestore `ai_usage`
 - Firestore 索引:`firestore.indexes.json`,首次部署後若查詢報錯提示缺索引,依錯誤訊息連結建立即可
 
 ## 疑難排解

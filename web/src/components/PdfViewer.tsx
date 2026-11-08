@@ -49,6 +49,51 @@ function loadPdfjs(): Promise<void> {
   return pdfjsLoading;
 }
 
+const CROP_TARGET_WIDTH = 1400; // 截圖寬度,足以辨識題本小字
+const CROP_MAX_PAGE_PX = 4096; // 手機瀏覽器的 canvas 尺寸上限
+const CROP_MAX_BASE64 = 1200 * 1024; // 後端上限 900KB,Base64 約多 1/3
+const crops = new Map<string, Promise<string>>();
+
+async function renderPdfCrop(url: string, region: PdfRegion): Promise<string> {
+  await loadPdfjs();
+  const task = window.pdfjsLib!.getDocument(url);
+  try {
+    const doc = await task.promise;
+    const page = await doc.getPage(region.page);
+    const base = page.getViewport({ scale: 1 });
+    const scale = Math.min(CROP_TARGET_WIDTH / (base.width * region.width), CROP_MAX_PAGE_PX / Math.max(base.width, base.height));
+    const viewport = page.getViewport({ scale });
+    const full = document.createElement('canvas');
+    full.width = Math.ceil(viewport.width);
+    full.height = Math.ceil(viewport.height);
+    await page.render({ canvasContext: full.getContext('2d')!, viewport }).promise;
+    const crop = document.createElement('canvas');
+    crop.width = Math.max(1, Math.round(full.width * region.width));
+    crop.height = Math.max(1, Math.round(full.height * region.height));
+    crop.getContext('2d')!.drawImage(full, full.width * region.x, full.height * region.y, crop.width, crop.height, 0, 0, crop.width, crop.height);
+    let data = '';
+    for (const quality of [0.85, 0.7, 0.55, 0.4]) {
+      data = crop.toDataURL('image/jpeg', quality).split(',')[1];
+      if (data.length <= CROP_MAX_BASE64) break;
+    }
+    return data;
+  } finally {
+    void task.destroy?.().catch(() => {});
+  }
+}
+
+/** 把題目範圍截成 JPEG(Base64,不含 data: 前綴);同一題只畫一次 */
+export function cropPdfRegion(url: string, region: PdfRegion): Promise<string> {
+  const key = `${url}|${JSON.stringify(region)}`;
+  let crop = crops.get(key);
+  if (!crop) {
+    crop = renderPdfCrop(url, region);
+    crops.set(key, crop);
+    crop.catch(() => crops.delete(key));
+  }
+  return crop;
+}
+
 interface Props {
   url: string;
   className?: string;

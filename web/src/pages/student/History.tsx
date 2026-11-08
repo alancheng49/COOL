@@ -129,7 +129,7 @@ export default function HistoryPage() {
                   </div>
                 </CardContent>
               </Card>
-              {detail.attempt.grading_status === 'pending' ? <Card><CardContent className="py-8 text-center text-sm text-muted-foreground">老師完成簡答題批改後，成績、正解與檢討內容會在這裡公布。</CardContent></Card> : <ReviewList questions={detail.questions} answers={detail.attempt.answers} keys={detail.keys} quizContext={{ quiz_id: detail.attempt.quiz_id, quiz_version: detail.attempt.quiz_version, quiz_title: detail.quiz_meta.title }} />}
+              {detail.attempt.grading_status === 'pending' ? <Card><CardContent className="py-8 text-center text-sm text-muted-foreground">老師完成簡答題批改後，成績、正解與檢討內容會在這裡公布。</CardContent></Card> : <ReviewList questions={detail.questions} answers={detail.attempt.answers} keys={detail.keys} quizContext={{ quiz_id: detail.attempt.quiz_id, quiz_version: detail.attempt.quiz_version, quiz_title: detail.quiz_meta.title }} attemptId={detail.attempt.attempt_id} pdfUrl={detail.quiz_meta.pdf_url} />}
             </div>
           ) : (
             <div className="flex h-40 items-center justify-center rounded-lg border border-dashed border-border text-sm text-muted-foreground">

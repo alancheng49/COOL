@@ -1,12 +1,12 @@
 import { useEffect, useState } from 'react';
-import { adminDeleteUser, adminListUsers, adminRenameUser, adminUpsertUser } from '@/lib/api';
+import { adminDeleteUser, adminListUsers, adminRenameUser, adminResetAiUsage, adminUpsertUser } from '@/lib/api';
 import type { UserItem } from '@/lib/types';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Pencil, Trash2, UserX, UserCheck } from 'lucide-react';
+import { Pencil, RotateCcw, Trash2, UserX, UserCheck } from 'lucide-react';
 import { useSession } from '@/App';
 import { backdropClose } from '@/lib/utils';
 
@@ -14,6 +14,7 @@ export default function AdminUsers() {
   const [items, setItems] = useState<UserItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [msg, setMsg] = useState('');
+  const [notice, setNotice] = useState('');
   const [showCreate, setShowCreate] = useState(false);
   const [editFor, setEditFor] = useState<UserItem | null>(null);
   const { session } = useSession();
@@ -42,6 +43,15 @@ export default function AdminUsers() {
     else setMsg(r?.error || '更新失敗');
   };
 
+  const resetAi = async (u: UserItem) => {
+    if (!confirm(`確定重置「${u.display_name}（${u.account}）」今天所有模型的 AI 額度？`)) return;
+    setMsg('');
+    setNotice('');
+    const r = await adminResetAiUsage(u.account);
+    if (r?.ok) setNotice(`已重置 ${u.display_name} 的 AI 額度`);
+    else setMsg(r?.error || '重置失敗');
+  };
+
   return (
     <div>
       <div className="mb-5 flex flex-wrap items-center justify-between gap-3">
@@ -53,6 +63,7 @@ export default function AdminUsers() {
       </div>
 
       {msg && <p className="mb-3 text-sm text-destructive">{msg}</p>}
+      {notice && <p className="mb-3 text-sm text-emerald-500" role="status">{notice}</p>}
 
       {loading ? (
         <p className="py-8 text-center text-sm text-muted-foreground">載入中…</p>
@@ -90,6 +101,9 @@ export default function AdminUsers() {
                     <div className="flex justify-end gap-1">
                       <button title="編輯（帳號 / 名稱 / 密碼）" aria-label="編輯帳號" onClick={() => setEditFor(u)} className="flex h-11 w-11 items-center justify-center rounded text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground md:h-7 md:w-7">
                         <Pencil className="h-4 w-4" />
+                      </button>
+                      <button title="重置 AI 額度" aria-label="重置 AI 額度" onClick={() => resetAi(u)} className="flex h-11 w-11 items-center justify-center rounded text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground md:h-7 md:w-7">
+                        <RotateCcw className="h-4 w-4" />
                       </button>
                       <button
                         title={u.is_active ? '停用帳號' : '重新啟用'}
