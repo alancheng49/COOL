@@ -130,7 +130,6 @@ export default function AdminPosts() {
       <div className="mb-5 flex items-center justify-between">
         <div>
           <h2 className="font-serif text-xl font-bold">公告管理</h2>
-          <p className="text-sm text-muted-foreground">發布公告或教學文章。發布中的公告學生才看得到。</p>
         </div>
         <Button onClick={() => setEditing('new')}>+ 發布公告</Button>
       </div>
@@ -266,7 +265,6 @@ function AssignPostDialog({ post, onClose }: { post: PostItem; onClose: (changed
         <CardContent className="flex min-h-0 flex-1 flex-col gap-4 py-5">
           <div>
             <h3 className="font-serif text-lg font-bold">派遣「{post.title}」</h3>
-            <p className="text-sm text-muted-foreground">選擇這篇公告要給誰看。</p>
           </div>
           <>
               <div className="flex items-center justify-between text-sm">

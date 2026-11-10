@@ -382,7 +382,7 @@ export default function QuizPage({ routeKey }: { routeKey: string }) {
               <p className="mt-1 font-serif text-3xl font-bold text-primary">
                 {pending ? '等待老師批改' : `${result.score} / ${result.max} 分`}
               </p>
-              <p className="mt-1 text-sm text-muted-foreground">{pending ? '含簡答題的作答在老師完成批改前不公布成績與正解。' : `得分率 ${pct}%（伺服端計分，成績已記錄）`}</p>
+              <p className="mt-1 text-sm text-muted-foreground">{pending ? '含簡答題的作答在老師完成批改前不公布成績與正解。' : `得分率 ${pct}%`}</p>
               {result.auto_submitted && <p className="mt-1 text-xs text-muted-foreground">作答時間到時，系統已使用最後儲存的答案自動交卷。</p>}
             </CardContent>
           </Card>

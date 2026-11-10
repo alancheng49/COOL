@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { adminDeleteQuizDraft, adminListQuizzes, adminQuizDetail, adminQuizDraftDetail, adminRenameQuiz, adminUpsertQuizDraft, uploadPdf, upsertAnswerKeys, upsertQuestions, upsertQuiz } from '@/lib/api';
-import type { AdminQuizDraft, AdminQuizItem, Question } from '@/lib/types';
+import type { AdminQuizDraft, AdminQuizItem, Question, QuizKind } from '@/lib/types';
 import MathHtml from '@/components/MathHtml';
 import MarkdownMath from '@/components/MarkdownMath';
 import ImageField from '@/components/ImageField';
@@ -12,6 +12,7 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Sheet, SheetContent, SheetTitle } from '@/components/ui/sheet';
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Trash2, ArrowUp, ArrowDown, Eye, FileUp, PanelRight, Sigma, Calculator, Save, Send, ListOrdered } from 'lucide-react';
 import MathInputDialog from '@/components/MathInputDialog';
 import PointsInput from '@/components/PointsInput';
@@ -55,6 +56,8 @@ export default function AdminEditor({ routeKey }: { routeKey: string }) {
   const [unifyType, setUnifyType] = useState<EditQ['question_type']>('choice');
   const [unifyPoints, setUnifyPoints] = useState('');
   const [outlineOpen, setOutlineOpen] = useState(false);
+  const [kind, setKind] = useState<QuizKind>('exam');
+  const [publishOpen, setPublishOpen] = useState(false);
   const [msg, setMsg] = useState('');
   const [busyAction, setBusyAction] = useState<'draft' | 'publish' | ''>('');
   const [loading, setLoading] = useState(isEdit);
@@ -83,6 +86,7 @@ export default function AdminEditor({ routeKey }: { routeKey: string }) {
           setSourceQuizVersion(Number(draft.source_quiz_version || 1));
           setVersion(String(draft.quiz_version || 1));
           setTopic(draft.topic || '');
+          setKind(draft.kind === 'homework' ? 'homework' : 'exam');
           setTitle(draft.title || '');
           setDescription(draft.description || '');
           setFile(draft.file || '');
@@ -109,6 +113,7 @@ export default function AdminEditor({ routeKey }: { routeKey: string }) {
         setSourceQuizVersion(Number(d.meta.quiz_version));
         setVersion(String(d.meta.quiz_version));
         setTopic(d.meta.topic || '');
+        setKind(d.meta.kind === 'homework' ? 'homework' : 'exam');
         setTitle(d.meta.title);
         setDescription(d.meta.description || '');
         setFile(d.meta.file);
@@ -294,6 +299,7 @@ export default function AdminEditor({ routeKey }: { routeKey: string }) {
       time_limit_value: timeLimit,
       total_points: qs.reduce((sum, question) => sum + (Number(question.points) || 0), 0),
       score_helper_total: scoreHelperTotal,
+      kind,
       is_active: active,
       pdf_mode: pdfMode,
       pdf_url: pdfUrl,
@@ -319,11 +325,17 @@ export default function AdminEditor({ routeKey }: { routeKey: string }) {
     window.history.replaceState(null, '', `#/admin/editor/draft/${encodeURIComponent(result.draft_id)}`);
   };
 
-  const publish = async () => {
+  const requestPublish = () => {
     if (problems.length) {
       setMsg(`請先修正：${problems[0]}`);
       return;
     }
+    setPublishOpen(true);
+  };
+
+  const publish = async (nextKind: QuizKind) => {
+    setPublishOpen(false);
+    setKind(nextKind);
     setBusyAction('publish');
     setMsg('');
     let ver = Number(version) || 1;
@@ -357,6 +369,7 @@ export default function AdminEditor({ routeKey }: { routeKey: string }) {
       pdf_mode: pdfMode, pdf_url: pdfMode ? pdfUrl : '', pdf_path: pdfMode ? pdfPath : '',
       quiz_id: quizId.trim(), quiz_version: ver, title: title.trim(),
       topic: topic.trim(),
+      kind: nextKind,
       description: description.trim(),
       total_points: qs.reduce((s, q) => s + (q.points || 1), 0),
       is_active: active, file: finalFile,
@@ -849,7 +862,7 @@ export default function AdminEditor({ routeKey }: { routeKey: string }) {
               <Save className="mr-1.5 h-4 w-4" />
               {busyAction === 'draft' ? '儲存中…' : '儲存草稿'}
             </Button>
-            <Button onClick={() => void publish()} disabled={busy}>
+            <Button onClick={requestPublish} disabled={busy}>
               <Send className="mr-1.5 h-4 w-4" />
               {busyAction === 'publish' ? '發佈中…' : '發佈考卷'}
             </Button>
@@ -874,6 +887,18 @@ export default function AdminEditor({ routeKey }: { routeKey: string }) {
           className="h-[55vh] xl:h-[calc(100vh-11rem)]" />
       </div>
     )}
+    <Dialog open={publishOpen} onOpenChange={setPublishOpen}>
+      <DialogContent>
+        <DialogHeader>
+          <DialogTitle>要發佈為考試還是作業？</DialogTitle>
+          <DialogDescription>會顯示在對應的分頁。發佈為作業時不會立刻寄信，之後派遣學生時，新派遣的學生才會收到 email 通知（含截止時間）。</DialogDescription>
+        </DialogHeader>
+        <div className="grid grid-cols-2 gap-2">
+          <Button variant={kind === 'exam' ? 'default' : 'outline'} onClick={() => void publish('exam')}>發佈為考試</Button>
+          <Button variant={kind === 'homework' ? 'default' : 'outline'} onClick={() => void publish('homework')}>發佈為作業</Button>
+        </div>
+      </DialogContent>
+    </Dialog>
     <Sheet open={outlineOpen} onOpenChange={setOutlineOpen}>
       <SheetContent side="right" aria-describedby={undefined} className="flex w-[min(24rem,92vw)] flex-col gap-3 pb-[max(1.5rem,env(safe-area-inset-bottom))]">
         <SheetTitle className="sr-only">題目清單</SheetTitle>

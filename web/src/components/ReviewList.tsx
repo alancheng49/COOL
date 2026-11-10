@@ -117,7 +117,7 @@ export default function ReviewList({ questions, answers, keys, quizContext, atte
           <Card className="w-full max-w-xl" onClick={(event) => event.stopPropagation()}>
             <CardContent className="space-y-3 py-5">
               <div className="flex items-center justify-between">
-                <div><h3 className="font-serif text-lg font-bold">第 {askFor.q_index + 1} 題：我不會</h3><p className="text-xs text-muted-foreground">送出後會出現在提問區，老師可直接看到測驗與題號。</p></div>
+                <div><h3 className="font-serif text-lg font-bold">第 {askFor.q_index + 1} 題：我不會</h3></div>
                 <Button variant="ghost" size="sm" onClick={() => setAskFor(null)}><X className="h-4 w-4" /></Button>
               </div>
               <QaComposer budgetUsed={0} submitLabel="送出提問" onSubmit={async (content, images) => {

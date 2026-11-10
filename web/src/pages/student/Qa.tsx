@@ -1,12 +1,15 @@
 import { useEffect, useState } from 'react';
+import { useHashRoute } from '@/App';
 import { qaList, qaDetail, qaCreate, qaReply, pingUnread, type QaThread, type QaImage } from '@/lib/api';
 import QaComposer from '@/components/QaComposer';
 import QaThreadView from '@/components/QaThreadView';
+import AiChat from './AiChat';
 import { fmtPostTime } from '@/pages/admin/Posts';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { ChevronLeft, MessageCircleQuestion, Plus } from 'lucide-react';
+import { cn } from '@/lib/utils';
+import { ChevronLeft, MessageCircleQuestion, Plus, Sparkles } from 'lucide-react';
 
 export function StatusChip({ status }: { status: 'answered' | 'waiting' }) {
   return status === 'answered' ? (
@@ -17,6 +20,32 @@ export function StatusChip({ status }: { status: 'answered' | 'waiting' }) {
 }
 
 export default function StudentQa() {
+  const [route, go] = useHashRoute();
+  const aiTab = route.startsWith('/qa/ai');
+  const tabs = [
+    { label: '問老師', icon: MessageCircleQuestion, active: !aiTab, hash: '/qa' },
+    { label: '問 AI', icon: Sparkles, active: aiTab, hash: '/qa/ai' },
+  ];
+  return (
+    <div>
+      <div className="mb-4 flex gap-1 border-b border-border">
+        {tabs.map(({ label, icon: Icon, active, hash }) => (
+          <button
+            key={hash}
+            aria-current={active ? 'page' : undefined}
+            onClick={() => { if (!active) go(hash); }}
+            className={cn('-mb-px flex items-center gap-1.5 border-b-2 px-4 py-2 text-sm font-semibold transition-colors', active ? 'border-primary text-primary' : 'border-transparent text-muted-foreground hover:text-foreground')}
+          >
+            <Icon className="h-4 w-4" />{label}
+          </button>
+        ))}
+      </div>
+      {aiTab ? <AiChat /> : <TeacherQa />}
+    </div>
+  );
+}
+
+function TeacherQa() {
   const [items, setItems] = useState<QaThread[]>([]);
   const [loading, setLoading] = useState(true);
   const [view, setView] = useState<'list' | 'new' | 'thread'>('list');
@@ -115,7 +144,6 @@ export default function StudentQa() {
       <div className="mb-4 flex items-center justify-between">
         <div>
           <h2 className="font-serif text-xl font-bold">提問</h2>
-          <p className="text-sm text-muted-foreground">向老師提出問題，收到回覆後可以繼續追問。</p>
         </div>
         <Button onClick={() => { setErr(''); setView('new'); }}>
           <Plus className="mr-1 h-4 w-4" />新增提問

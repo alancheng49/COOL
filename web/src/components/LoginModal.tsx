@@ -68,7 +68,6 @@ export default function LoginModal({ onClose }: { onClose: () => void }) {
               <img src="/favicon-32.png" alt="系統圖示" className="h-9 w-9 rounded" />
               <div>
                 <h3 className="font-serif text-lg font-bold leading-tight">登入</h3>
-                <p className="text-xs text-muted-foreground">請使用老師提供的帳號</p>
               </div>
             </div>
             <Button variant="ghost" size="sm" onClick={onClose}><X className="h-4 w-4" /></Button>

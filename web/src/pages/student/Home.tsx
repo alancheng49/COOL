@@ -2,10 +2,11 @@ import { useEffect, useMemo, useState } from 'react';
 import { useSession } from '@/App';
 import { historyList, listAvailableQuizzes } from '@/lib/api';
 import { getSession as getSavedSession, saveSession } from '@/lib/session';
-import type { AttemptItem, QuizInfo } from '@/lib/types';
+import type { AttemptItem, QuizInfo, QuizKind } from '@/lib/types';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Clock, CalendarClock, RotateCcw } from 'lucide-react';
 
 function fmtDue(due?: string | null) {
@@ -15,10 +16,14 @@ function fmtDue(due?: string | null) {
   return d.toLocaleString('zh-TW', { month: 'numeric', day: 'numeric', hour: '2-digit', minute: '2-digit' });
 }
 
+const KIND_LABELS: Record<QuizKind, string> = { exam: '考試', homework: '作業' };
+const kindOf = (quiz: QuizInfo): QuizKind => quiz.kind === 'homework' ? 'homework' : 'exam';
+
 export default function StudentHome() {
   const { session, setSession } = useSession();
   const [quizzes, setQuizzes] = useState<QuizInfo[]>(session?.quizzes || []);
   const [attempts, setAttempts] = useState<AttemptItem[]>([]);
+  const [selectedKind, setSelectedKind] = useState<QuizKind | null>(null);
 
   useEffect(() => {
     if (!session?.token) return;
@@ -48,40 +53,55 @@ export default function StudentHome() {
     });
   }, []);
 
+  const counts = useMemo(() => ({
+    exam: quizzes.filter((quiz) => kindOf(quiz) === 'exam').length,
+    homework: quizzes.filter((quiz) => kindOf(quiz) === 'homework').length,
+  }), [quizzes]);
+  // 還沒手動切換時，只有作業的學生直接看到作業
+  const kind = selectedKind ?? (!counts.exam && counts.homework ? 'homework' : 'exam');
+
   const groups = useMemo(() => {
+    const fallback = `其他${KIND_LABELS[kind]}`;
     const map = new Map<string, QuizInfo[]>();
-    quizzes.forEach((quiz) => {
-      const topic = quiz.topic?.trim() || '其他考卷';
+    quizzes.filter((quiz) => kindOf(quiz) === kind).forEach((quiz) => {
+      const topic = quiz.topic?.trim() || fallback;
       map.set(topic, [...(map.get(topic) || []), quiz]);
     });
-    return [...map.entries()].sort(([a], [b]) => a === '其他考卷' ? 1 : b === '其他考卷' ? -1 : a.localeCompare(b, 'zh-TW'));
-  }, [quizzes]);
+    return [...map.entries()].sort(([a], [b]) => a === fallback ? 1 : b === fallback ? -1 : a.localeCompare(b, 'zh-TW'));
+  }, [quizzes, kind]);
 
   return (
     <div>
       <div className="mb-5">
         <h2 className="font-serif text-xl font-bold">我的測驗</h2>
-        <p className="text-sm text-muted-foreground">以下是老師指派給你的測驗，清單會自動更新。</p>
       </div>
 
-      {quizzes.length === 0 ? (
-        <Card>
-          <CardContent className="py-10 text-center text-muted-foreground">
-            目前沒有指派給你的測驗。
-          </CardContent>
-        </Card>
-      ) : (
-        <div className="space-y-7">
-          {groups.map(([topic, topicQuizzes]) => (
-            <section key={topic}>
-              <h3 className="mb-3 font-serif text-lg font-bold">{topic}</h3>
-              <div className="grid gap-4 sm:grid-cols-2">
-                {topicQuizzes.map((quiz) => <QuizCard key={`${quiz.id}_${quiz.version}`} quiz={quiz} attempts={attempts} />)}
-              </div>
-            </section>
-          ))}
-        </div>
-      )}
+      <Tabs value={kind} onValueChange={(value) => setSelectedKind(value as QuizKind)}>
+        <TabsList>
+          <TabsTrigger value="exam">考試（{counts.exam}）</TabsTrigger>
+          <TabsTrigger value="homework">作業（{counts.homework}）</TabsTrigger>
+        </TabsList>
+        <TabsContent value={kind} className="mt-4">
+          {groups.length === 0 ? (
+            <Card>
+              <CardContent className="py-10 text-center text-muted-foreground">
+                目前沒有指派給你的{KIND_LABELS[kind]}。
+              </CardContent>
+            </Card>
+          ) : (
+            <div className="space-y-7">
+              {groups.map(([topic, topicQuizzes]) => (
+                <section key={topic}>
+                  <h3 className="mb-3 font-serif text-lg font-bold">{topic}</h3>
+                  <div className="grid gap-4 sm:grid-cols-2">
+                    {topicQuizzes.map((quiz) => <QuizCard key={`${quiz.id}_${quiz.version}`} quiz={quiz} attempts={attempts} />)}
+                  </div>
+                </section>
+              ))}
+            </div>
+          )}
+        </TabsContent>
+      </Tabs>
     </div>
   );
 }

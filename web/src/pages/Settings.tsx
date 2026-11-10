@@ -108,7 +108,6 @@ export default function SettingsPage() {
             <div className="space-y-1">
               <Label>帳號</Label>
               <Input value={session.account} disabled className="bg-muted" />
-              <p className="text-xs text-muted-foreground">帳號無法自行更改，如有需要請聯絡老師。</p>
             </div>
             <div className="space-y-1">
               <Label>顯示名稱</Label>

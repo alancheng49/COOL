@@ -205,6 +205,11 @@ export const uploadImage = (
   options: { interactive?: boolean; decision?: ImageUploadDecision; existing_path?: string } = {},
 ) => post({ action: 'upload_image', file_name, data_base64, content_type, ...options }) as Promise<ImageUploadResponse | null>;
 export const uploadPdf = (data_base64: string) => post({ action: 'upload_pdf', data_base64 });
+export const importQuizZip = async (data_base64: string) => {
+  const r = await post({ action: 'import_quiz_zip', data_base64 });
+  if (r?.ok) invalidate('admin:quizzes');
+  return r;
+};
 export const uploadFile = (file_name: string, data_base64: string, content_type: string) =>
   post({ action: 'upload_file', file_name, data_base64, content_type });
 
@@ -296,6 +301,7 @@ export function pingUnread() {
 export interface AiTutorMessage {
   role: 'user' | 'model';
   text: string;
+  images?: { url: string }[]; // 學生附加的圖片
   model_label?: string; // AI 回覆時實際使用的模型
   sent_at?: number; // 學生送出的時間，用來顯示已處理多久
 }
@@ -303,25 +309,39 @@ export interface AiTutorMessage {
 export interface AiTutorPending {
   status: 'running' | 'failed';
   question: string;
+  images?: { url: string }[];
   created_at: string;
   error?: string;
 }
 
+// 題目對話用作答與題號識別；提問區的一般對話用 thread_id
+export type AiThreadTarget = { attempt_id: string; q_index: number } | { thread_id: string };
+
+export interface AiThreadSummary {
+  id: string;
+  title: string;
+  attempt_id?: string;
+  q_index?: number;
+  status: 'idle' | 'running' | 'failed';
+  updated_at: string;
+}
 
 export interface AiTutorModel {
   id: string;
   label: string;
   vision: boolean;
-  remaining: number;
 }
 
 export const aiTutorStatus = () => get({ action: 'ai_tutor_status' });
-export const aiTutorThread = (attempt_id: string, q_index: number) => get({ action: 'ai_tutor_thread', attempt_id, q_index });
+export const aiThreadList = () => get({ action: 'ai_thread_list' });
+export const aiTutorThread = (target: AiThreadTarget) => get({ action: 'ai_tutor_thread', ...target });
 
-export const aiTutorAsk = (p: { attempt_id: string; q_index: number; question: string; pdf_crop?: string; model: string }) =>
+export const aiTutorAsk = (p: AiThreadTarget & { question: string; pdf_crop?: string; images?: { data_base64: string }[]; model: string }) =>
   post({ action: 'ai_tutor_ask', ...p });
 
-export const aiTutorCancel = (attempt_id: string, q_index: number) => post({ action: 'ai_tutor_cancel', attempt_id, q_index });
+export const aiTutorCancel = (target: AiThreadTarget) => post({ action: 'ai_tutor_cancel', ...target });
+export const aiThreadRename = (target: AiThreadTarget, title: string) => post({ action: 'ai_thread_rename', ...target, title });
+export const aiThreadDelete = (target: AiThreadTarget) => post({ action: 'ai_thread_delete', ...target });
 
 export const adminResetAiUsage = (account: string) => post({ action: 'admin_reset_ai_usage', account });
 

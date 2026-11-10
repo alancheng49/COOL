@@ -106,7 +106,7 @@ export default function QuizInfoPage({ routeKey }: { routeKey: string }) {
       <section className="min-h-48 py-8">
         {quiz.description
           ? <MarkdownMath md={quiz.description} className="leading-7" />
-          : <p className="text-sm text-muted-foreground">老師沒有另外提供作答說明。</p>}
+          : <p className="text-sm text-muted-foreground">無說明</p>}
       </section>
 
       <div className="border-t border-border pt-6">

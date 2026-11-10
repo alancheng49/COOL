@@ -64,7 +64,6 @@ export default function StudentPosts() {
     <div>
       <div className="mb-4">
         <h2 className="font-serif text-xl font-bold">公告</h2>
-        <p className="text-sm text-muted-foreground">老師發布的公告與教學文章。</p>
       </div>
 
       {/* 標籤搜尋 */}

@@ -1,5 +1,7 @@
 export type Role = 'admin' | 'student';
 
+export type QuizKind = 'exam' | 'homework';
+
 export interface Session {
   token: string;
   account: string;
@@ -22,6 +24,7 @@ export interface QuizInfo {
   pdf_url?: string;
   description?: string;
   topic?: string;
+  kind?: QuizKind;
 }
 
 export interface AnswerImage {
@@ -164,6 +167,7 @@ export interface AdminQuizItem {
   assigned_accounts?: string[];
   scheduled_count?: number;
   topic?: string;
+  kind?: QuizKind;
 }
 
 export interface AdminQuizDraft {
@@ -180,6 +184,7 @@ export interface AdminQuizDraft {
   time_limit_value: string;
   total_points: number;
   score_helper_total?: string;
+  kind?: QuizKind;
   is_active: boolean;
   pdf_mode?: boolean;
   pdf_url?: string;

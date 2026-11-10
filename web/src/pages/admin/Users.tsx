@@ -44,7 +44,7 @@ export default function AdminUsers() {
   };
 
   const resetAi = async (u: UserItem) => {
-    if (!confirm(`確定重置「${u.display_name}（${u.account}）」今天所有模型的 AI 額度？`)) return;
+    if (!confirm(`確定重置「${u.display_name}（${u.account}）」今天的 AI 額度？`)) return;
     setMsg('');
     setNotice('');
     const r = await adminResetAiUsage(u.account);
@@ -57,7 +57,6 @@ export default function AdminUsers() {
       <div className="mb-5 flex flex-wrap items-center justify-between gap-3">
         <div>
           <h2 className="font-serif text-xl font-bold">帳號管理</h2>
-          <p className="text-sm text-muted-foreground">建立學生帳號、重設密碼、停用帳號。</p>
         </div>
         <Button onClick={() => setShowCreate(true)}>+ 新增帳號</Button>
       </div>

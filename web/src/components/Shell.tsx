@@ -251,7 +251,6 @@ function Welcome({ onLogin }: { onLogin: () => void }) {
       <img src="/apple-touch-icon.png" alt="系統圖示" className="h-24 w-24 rounded-2xl shadow-md" />
       <div>
         <h1 className="font-serif text-3xl font-bold">COOL</h1>
-        <p className="mt-2 text-muted-foreground">作答指定測驗、查看成績與詳解，請先登入。</p>
       </div>
       <Button size="lg" onClick={onLogin}>
         <LogIn className="mr-2 h-4 w-4" />登入

@@ -1,7 +1,8 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
+import type { ChangeEvent } from 'react';
 import AssignHoverCard from '@/components/AssignHoverCard';
 import {
-  adminAssign, adminDeleteQuiz, adminDeleteQuizDraft, adminListQuizzes, adminListUsers, adminQuizDetail, adminQuizDraftDetail, adminUpsertQuizDraft, adminUnassign, adminUpdateTopic, upsertQuiz,
+  adminAssign, adminDeleteQuiz, adminDeleteQuizDraft, adminListQuizzes, adminListUsers, adminQuizDetail, adminQuizDraftDetail, adminUpsertQuizDraft, adminUnassign, adminUpdateTopic, importQuizZip, upsertQuiz,
 } from '@/lib/api';
 import { draftQuizCopy, publishedQuizCopy } from '@/lib/quiz-copy';
 import type { AdminQuizDraft, AdminQuizItem, UserItem } from '@/lib/types';
@@ -11,6 +12,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Checkbox } from '@/components/ui/checkbox';
+import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Check, Copy, Eye, LoaderCircle, Pencil, Power, Send, Trash2, X } from 'lucide-react';
 
 function toDateTimeLocal(value?: string | null) {
@@ -33,6 +35,21 @@ interface ManagedQuizRow {
 
 const quizKey = (quizId: string, version: number) => `${quizId}@@${version}`;
 
+type QuizTab = 'exam' | 'homework' | 'unpublished';
+const rowTab = (row: ManagedQuizRow): QuizTab => !row.published ? 'unpublished' : row.published.kind === 'homework' ? 'homework' : 'exam';
+
+// 派遣後告訴老師作業通知信的實際結果
+function assignNotice(result: { notified?: number; notify_unreachable?: number; notify_failed?: number; notify_skipped?: string } | undefined) {
+  if (result?.notify_skipped === 'MAIL_DISABLED') return { text: '已派遣，但系統尚未設定寄信，沒有寄出作業通知。', error: true };
+  if (result?.notify_skipped === 'QUIZ_INACTIVE') return { text: '已派遣，但這份作業未啟用，學生看不到，因此沒有寄出通知。', error: true };
+  if (result?.notified === undefined) return null;
+  const details = [
+    result.notify_unreachable ? `${result.notify_unreachable} 位學生未驗證信箱` : '',
+    result.notify_failed ? `${result.notify_failed} 封寄送失敗` : '',
+  ].filter(Boolean).join('、');
+  return { text: `已派遣，寄出 ${result.notified} 封作業通知${details ? `（${details}）` : ''}。`, error: !!result.notify_failed };
+}
+
 export default function AdminQuizzes() {
   const [items, setItems] = useState<AdminQuizItem[]>([]);
   const [drafts, setDrafts] = useState<AdminQuizDraft[]>([]);
@@ -45,6 +62,9 @@ export default function AdminQuizzes() {
   const [topicName, setTopicName] = useState('');
   const [topicBusy, setTopicBusy] = useState(false);
   const [copyingKey, setCopyingKey] = useState('');
+  const [selectedTab, setSelectedTab] = useState<QuizTab>('exam');
+  const [importing, setImporting] = useState(false);
+  const importInputRef = useRef<HTMLInputElement>(null);
 
   const showError = (text: string) => {
     setMsg(text);
@@ -66,6 +86,48 @@ export default function AdminQuizzes() {
     });
   };
   useEffect(reload, []);
+
+  const importZip = async (event: ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    event.target.value = '';
+    if (!file) return;
+    if (file.size > 20 * 1024 * 1024) {
+      showError('zip 超過 20MB，請減少或壓縮圖片。');
+      return;
+    }
+    setImporting(true);
+    setMsg('');
+    try {
+      const base64 = await new Promise<string>((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = () => resolve(String(reader.result).split(',')[1]);
+        reader.onerror = () => reject(new Error('讀檔失敗'));
+        reader.readAsDataURL(file);
+      });
+      const result = await importQuizZip(base64);
+      if (!result?.ok) {
+        const reason = result?.error === 'QUIZ_ID_EXISTS'
+          ? '此識別碼已被其他考卷或草稿使用'
+          : result?.error === 'QUESTION_FILE_EXISTS'
+            ? '同名題目檔已存在，請更換識別碼'
+            : result?.error === 'INVALID_QUIZ_PACKAGE'
+              ? 'zip 內容不符合規格'
+              : result?.error || '未知錯誤';
+        const details: string[] = result?.details || [];
+        const shown = details.slice(0, 8).join('；');
+        const more = details.length > 8 ? `；另有 ${details.length - 8} 項` : '';
+        showError(`匯入失敗：${reason}${shown ? `（${shown}${more}）` : ''}`);
+        return;
+      }
+      const warnings: string[] = result.warnings || [];
+      showSuccess(`已匯入「${result.title}」：${result.question_count} 題、${result.total_points} 分、${result.image_count} 張圖片。考卷尚未啟用，請先到編輯器檢查內容與答案。${warnings.length ? `（${warnings.join('；')}）` : ''}`);
+      reload();
+    } catch (error) {
+      showError(`匯入失敗：${error instanceof Error ? error.message : '未知錯誤'}`);
+    } finally {
+      setImporting(false);
+    }
+  };
 
   const copyQuiz = async (quiz: ManagedQuizRow) => {
     if (copyingKey) return;
@@ -142,17 +204,27 @@ export default function AdminQuizzes() {
     return rows;
   }, [items, drafts]);
 
-  const groups = useMemo(() => {
+  const matchedRows = useMemo(() => {
     const keyword = search.trim().toLowerCase();
-    const filtered = managedRows.filter((item) => !keyword || [item.title, item.quiz_id, item.topic].some((value) => value.toLowerCase().includes(keyword)));
+    return managedRows.filter((item) => !keyword || [item.title, item.quiz_id, item.topic].some((value) => value.toLowerCase().includes(keyword)));
+  }, [managedRows, search]);
+  const tabCounts = useMemo(() => {
+    const counts: Record<QuizTab, number> = { exam: 0, homework: 0, unpublished: 0 };
+    matchedRows.forEach((row) => { counts[rowTab(row)] += 1; });
+    return counts;
+  }, [matchedRows]);
+  const hasUnpublished = managedRows.some((row) => rowTab(row) === 'unpublished');
+  const tab = selectedTab === 'unpublished' && !hasUnpublished ? 'exam' : selectedTab;
+
+  const groups = useMemo(() => {
     const map = new Map<string, ManagedQuizRow[]>();
-    filtered.forEach((item) => {
+    matchedRows.filter((item) => rowTab(item) === tab).forEach((item) => {
       map.set(item.topic, [...(map.get(item.topic) || []), item]);
     });
     return [...map.entries()]
       .sort(([a], [b]) => !a ? 1 : !b ? -1 : a.localeCompare(b, 'zh-TW'))
       .map(([topic, quizzes]) => ({ topic, label: topic || '未分類', quizzes: quizzes.sort((a, b) => a.title.localeCompare(b.title, 'zh-TW')) }));
-  }, [managedRows, search]);
+  }, [matchedRows, tab]);
 
   const del = async (q: AdminQuizItem) => {
     if (!confirm(`確定刪除「${q.title}」${q.quiz_version !== 1 ? `(舊版 v${q.quiz_version})` : ''}?\n將一併刪除答案與所有派遣紀錄。`)) return;
@@ -226,22 +298,33 @@ export default function AdminQuizzes() {
       <div className="mb-5 flex flex-wrap items-end justify-between gap-3">
         <div>
           <h2 className="font-serif text-xl font-bold">題目管理</h2>
-          <p className="text-sm text-muted-foreground">考卷依主題分組；每份考卷使用獨立識別碼。</p>
         </div>
         <div className="flex w-full min-w-0 gap-2 sm:w-auto">
           <Input aria-label="搜尋考卷" className="min-w-0 flex-1 sm:w-56" value={search} onChange={(event) => setSearch(event.target.value)} placeholder="搜尋主題、標題或識別碼" />
+          <input ref={importInputRef} type="file" accept=".zip,application/zip" className="hidden" aria-label="選擇題本 zip" onChange={importZip} />
+          <Button className="shrink-0" variant="outline" disabled={importing} onClick={() => importInputRef.current?.click()}>{importing ? '匯入中…' : '匯入題本 zip'}</Button>
           <Button className="shrink-0" onClick={() => (location.hash = '/admin/editor')}>+ 新增考卷</Button>
         </div>
       </div>
 
       {msg && <p className={`mb-3 text-sm ${msgError ? 'text-destructive' : 'text-emerald-700 dark:text-emerald-400'}`}>{msg}</p>}
 
+      {!loading && managedRows.length > 0 && (
+        <Tabs className="mb-4" value={tab} onValueChange={(value) => setSelectedTab(value as QuizTab)}>
+          <TabsList>
+            <TabsTrigger value="exam">考試（{tabCounts.exam}）</TabsTrigger>
+            <TabsTrigger value="homework">作業（{tabCounts.homework}）</TabsTrigger>
+            {hasUnpublished && <TabsTrigger value="unpublished">未發佈草稿（{tabCounts.unpublished}）</TabsTrigger>}
+          </TabsList>
+        </Tabs>
+      )}
+
       {loading ? (
         <p className="py-8 text-center text-sm text-muted-foreground">載入中…</p>
       ) : managedRows.length === 0 ? (
         <Card><CardContent className="py-10 text-center text-muted-foreground">還沒有任何考卷，點右上角「新增考卷」開始。</CardContent></Card>
       ) : groups.length === 0 ? (
-        <Card><CardContent className="py-10 text-center text-muted-foreground">找不到符合搜尋條件的考卷。</CardContent></Card>
+        <Card><CardContent className="py-10 text-center text-muted-foreground">{search.trim() ? '這個分頁找不到符合搜尋條件的考卷。' : '這個分頁目前沒有考卷。'}</CardContent></Card>
       ) : (
         <div className="space-y-6">
           {groups.map(({ topic, label, quizzes }) => (
@@ -281,7 +364,7 @@ export default function AdminQuizzes() {
                     <IconBtn title={`重新命名「${topic}」`} onClick={() => beginRenameTopic(topic)} disabled={topicBusy}>
                       <Pencil className="h-4 w-4" />
                     </IconBtn>
-                    <IconBtn title={`刪除主題「${topic}」`} onClick={() => void deleteTopic(topic, quizzes.length)} danger disabled={topicBusy}>
+                    <IconBtn title={`刪除主題「${topic}」`} onClick={() => void deleteTopic(topic, managedRows.filter((row) => row.topic === topic).length)} danger disabled={topicBusy}>
                       <Trash2 className="h-4 w-4" />
                     </IconBtn>
                   </div>
@@ -306,7 +389,19 @@ export default function AdminQuizzes() {
         </div>
       )}
 
-      {assignFor && <AssignDialog quiz={assignFor} onClose={(changed) => { setAssignFor(null); if (changed) reload(); }} />}
+      {assignFor && (
+        <AssignDialog
+          quiz={assignFor}
+          onClose={(changed, notice) => {
+            setAssignFor(null);
+            if (notice) {
+              setMsg(notice.text);
+              setMsgError(notice.error);
+            }
+            if (changed) reload();
+          }}
+        />
+      )}
     </div>
   );
 }
@@ -404,7 +499,7 @@ function IconBtn({ children, title, onClick, danger, disabled }: { children: Rea
 }
 
 // ===== 派遣對話框（批次） =====
-function AssignDialog({ quiz, onClose }: { quiz: AdminQuizItem; onClose: (changed: boolean) => void }) {
+function AssignDialog({ quiz, onClose }: { quiz: AdminQuizItem; onClose: (changed: boolean, notice?: { text: string; error: boolean } | null) => void }) {
   const [users, setUsers] = useState<UserItem[]>([]);
   const [assigned, setAssigned] = useState<Set<string>>(new Set());
   const [checked, setChecked] = useState<Set<string>>(new Set());
@@ -469,6 +564,7 @@ function AssignDialog({ quiz, onClose }: { quiz: AdminQuizItem; onClose: (change
     const toAdd = [...checked];
     const toRemove = [...assigned].filter((a) => !checked.has(a));
     let ok = true;
+    let notice: ReturnType<typeof assignNotice> = null;
     if (toAdd.length) {
       const r = await adminAssign({
         quiz_id: quiz.quiz_id, quiz_version: quiz.quiz_version, accounts: toAdd,
@@ -477,6 +573,7 @@ function AssignDialog({ quiz, onClose }: { quiz: AdminQuizItem; onClose: (change
         available_at: availableIso,
       });
       ok = ok && !!r?.ok;
+      notice = assignNotice(r);
     }
     if (toRemove.length) {
       const r = await adminUnassign(quiz.quiz_id, quiz.quiz_version, toRemove);
@@ -485,7 +582,7 @@ function AssignDialog({ quiz, onClose }: { quiz: AdminQuizItem; onClose: (change
     setBusy(false);
     if (ok) {
       setChanged(true);
-      onClose(true);
+      onClose(true, notice);
     } else setMsg('儲存時發生錯誤，請確認時間設定後重試。');
   };
 
@@ -495,7 +592,7 @@ function AssignDialog({ quiz, onClose }: { quiz: AdminQuizItem; onClose: (change
         <CardContent className="flex flex-col gap-4 px-4 py-5 sm:px-6">
           <div>
             <h3 className="font-serif text-lg font-bold">派遣「{quiz.title}」</h3>
-            <p className="text-sm text-muted-foreground">勾選要指派的學生；取消勾選會移除派遣。</p>
+            <p className="text-sm text-muted-foreground">勾選要指派的學生；取消勾選會移除派遣。{quiz.kind === 'homework' && ' 新派遣的學生會收到 email 通知（含截止時間）。'}</p>
           </div>
 
           <div className="space-y-1">

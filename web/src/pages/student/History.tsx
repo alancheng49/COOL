@@ -52,7 +52,6 @@ export default function HistoryPage() {
       <div className="mb-5 flex flex-wrap items-center justify-between gap-3">
         <div>
           <h2 className="font-serif text-xl font-bold">作答紀錄</h2>
-          <p className="text-sm text-muted-foreground">點選任一筆紀錄可查看每題作答詳情。</p>
         </div>
         <div className="flex rounded-md border border-border bg-card p-0.5">
           {(['best', 'all'] as Scope[]).map((s) => (

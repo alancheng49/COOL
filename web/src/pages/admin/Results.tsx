@@ -80,7 +80,6 @@ export default function AdminResults() {
       <div className="mb-5 flex flex-wrap items-end justify-between gap-3">
         <div>
           <h2 className="font-serif text-xl font-bold">成績總覽</h2>
-          <p className="text-sm text-muted-foreground">所有學生的每次作答紀錄，點列可看每題詳情。</p>
         </div>
         <div className="grid w-full min-w-0 gap-2 sm:flex sm:w-auto sm:flex-wrap">
           <select
@@ -261,7 +260,6 @@ function ManualGradingReview({ detail, onSaved }: { detail: Detail; onSaved: (sc
     <div>
       <div className="mb-4 border-b border-border pb-3">
         <h4 className="font-serif font-bold">待批改題目</h4>
-        <p className="text-xs text-muted-foreground">請在各簡答題的學生作答下方評分。</p>
       </div>
       <ReviewList questions={detail.questions} answers={detail.attempt.answers} keys={detail.keys} renderManualGrade={gradeControl} />
       <div className="sticky bottom-0 mt-4 flex flex-wrap items-center justify-between gap-3 border-t border-border bg-background/95 py-3 backdrop-blur">

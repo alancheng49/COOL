@@ -1,4 +1,4 @@
-import type { AdminQuizDraft, Question } from './types';
+import type { AdminQuizDraft, Question, QuizKind } from './types';
 import { fromQuestion } from './quiz-editor';
 
 type AnswerKey = NonNullable<Parameters<typeof fromQuestion>[1]> & { q_index: number };
@@ -8,6 +8,7 @@ interface PublishedDetail {
     quiz_id: string;
     title: string;
     topic?: string;
+    kind?: QuizKind;
     description?: string;
     time_limit_minutes?: number | null;
     total_points?: number;
@@ -44,6 +45,7 @@ export function publishedQuizCopy(detail: PublishedDetail, suffix: string) {
   return {
     ...copyIdentity(meta.quiz_id, meta.title, suffix),
     topic: meta.topic || '',
+    kind: meta.kind || 'exam',
     description: meta.description || '',
     time_limit_value: meta.time_limit_minutes == null ? '' : String(meta.time_limit_minutes),
     total_points: editor.reduce((total, question) => total + question.points, 0),
@@ -60,6 +62,7 @@ export function draftQuizCopy(draft: AdminQuizDraft & { editor: unknown[] }, suf
   return {
     ...copyIdentity(draft.quiz_id, draft.title, suffix),
     topic: draft.topic || '',
+    kind: draft.kind || 'exam',
     description: draft.description || '',
     time_limit_value: draft.time_limit_value,
     total_points: draft.total_points,

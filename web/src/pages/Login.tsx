@@ -62,7 +62,6 @@ export default function Login() {
             測
           </div>
           <h1 className="font-serif text-2xl font-bold">COOL</h1>
-          <p className="mt-1 text-sm text-muted-foreground">請使用老師提供的帳號登入</p>
         </div>
         <Card>
           <CardHeader className="pb-2" />

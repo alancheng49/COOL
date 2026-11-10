@@ -148,7 +148,6 @@ export default function AdminQa() {
     <div>
       <div className="mb-4">
         <h2 className="font-serif text-xl font-bold">提問管理</h2>
-        <p className="text-sm text-muted-foreground">學生的提問，逐一回覆後會移到「已回覆」。</p>
       </div>
 
       <div className="mb-4 flex gap-1 border-b">
